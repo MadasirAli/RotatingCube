@@ -12,6 +12,7 @@ INCLUDELIB	user32.lib
 RegisterClassExA	PROTO
 CreateWindowExA		PROTO
 ShowWindow		PROTO
+DefWindowProcA		PROTO
 
 .data
 	; defining windows class stuture
@@ -40,6 +41,40 @@ ShowWindow		PROTO
 
 .code
 ; -----------------------------------------------------------------------------------
+; PROCEDURE
+;	Name		: dwndp
+;	Description	: Default Windows Message Handler
+;	
+;	Parametres	:-
+;			    rcx = handle to window 
+;			    rdx = address of message
+;			    r8 	= lParam	
+;			    r9	= hParam
+;	Returns		: LResult 
+;	
+; -----------------------------------------------------------------------------------
+	dwndp	PROC
+		; setting stack
+		; saving old stack pointer
+		push	rbp
+		; setting new stack frame
+		mov	rbp, 	rsp
+
+		; adding shadow space
+		sub	rsp,	32
+
+		call 	DefWindowProcA
+
+		; cleaning shadow space
+		add	rsp,	32
+
+		; restoring stack
+		pop	rbp
+		; returning to caller
+		ret
+	dwndp	ENDP
+; -----------------------------------------------------------------------------------
+; PROCEDURE
 ; 	Name		: shwnd
 ;	Description	: Set Specified Window's shows state
 ;
@@ -75,15 +110,16 @@ ShowWindow		PROTO
 	shwnd	ENDP	
 
 ; -----------------------------------------------------------------------------------
+; PREDECURE
 ;	Name		: crtewnd
 ;	Description	: Creates a Window Object from a Registered Window Class
 ;	
 ;	Parametres	:-
 ;			   rcx	= dwExStyle
-;			   rdx 	= lpClassNamei
+;			   rdx 	= lpClassName
 ;			   r8	= lpWindowName
 ;			   r9 	= dwStyle
-;			   stack= X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, 	 			       lpParam
+;			   stack= X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam
 ;       Returns		: handle to the created window object
 ; -----------------------------------------------------------------------------------
 	crtewnd	PROC
@@ -93,48 +129,42 @@ ShowWindow		PROTO
 		mov	rbp,	rsp
 		
 		; setting parametres
-		; adding shadow space for registers parametres
-		sub	rsp,	32
 		; pushing stack parametres
 		xor	rax,	rax
-		mov 	eax,	dword ptr [rsp + 120]
+		mov 	eax,	dword ptr [rsp + 72]
 		push	rax
 
-		mov	rax,	qword ptr [rsp + 120]
+		mov	rax,	qword ptr [rsp + 72]
 		push	rax
 
-		mov 	rax,	qword ptr [rsp + 120]
+		mov 	rax,	qword ptr [rsp + 72]
 		push	rax
 
-		mov 	rax,	qword ptr [rsp + 120]
+		mov 	rax,	qword ptr [rsp + 72]
 		push 	rax
 		
-		mov	rax, 	qword ptr [rsp + 120]
+		mov	rax, 	qword ptr [rsp + 72]
 		push 	rax
 
-		mov	rax,	qword ptr [rsp + 120]
+		mov	rax,	qword ptr [rsp + 72]
 		push 	rax
 
-		mov	rax,	qword ptr [rsp + 120]
+		mov	rax,	qword ptr [rsp + 72]
 		push	rax
 
-		mov	rax,	qword ptr [rsp + 120]
+		mov	rax,	qword ptr [rsp + 72]
 		push 	rax
 
-		mov 	rax,	qword ptr [rsp + 120]
-		push 	rax
-
-		mov	rax,	qword ptr [rsp + 120]
-		push	rax
-
-		mov	rax,	qword ptr [rsp + 120]
-		push 	rax
-		
-		mov	rax,	qword ptr [rsp + 120]
-		push	rax
+		; adding shadow space
+		sub	rsp,	32
 
 		; calling win32 api
 		call	CreateWindowExA
+
+		; cleaning stack params
+		add	rsp,	64
+		; cleaning shadow space
+		add	rsp, 	32
 
 		; restoring stack
 		pop	rbp
@@ -143,6 +173,7 @@ ShowWindow		PROTO
 	crtewnd	ENDP
 
 ; -----------------------------------------------------------------------------------
+; PROCEDURE
 ;	Name		: regcls
 ;	Description 	: Registers a Window Class on WIN32 API
 ;

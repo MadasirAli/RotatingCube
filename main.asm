@@ -13,8 +13,6 @@ INCLUDE		winutils.asm
 .data
 	className:
 		byte	"WINDOW", 0
-	wndClassExInst:
-		byte 500 dup(0)
 	wndHnd:
 		qword	0
 
@@ -41,15 +39,7 @@ public 	WinMain
 		; running test
 					
 		; registering window
-
-		; WNDCLASSEX
-		; creating new structure
-		;mov	rcx,	WNDCLASSEX
-		;mov	rdx,	wndClassExInst
-		;mov	r8,	WNDCLASSEX_SIZE
-		;call	memcpy
-
-		; filling
+		; filling WNDCLASSEX
 		xor	rax,	rax
 		mov	eax,	WNDCLASSEX_SIZE
 		mov	dword ptr [wndClassEx + 0],	eax
@@ -57,33 +47,33 @@ public 	WinMain
 		mov	eax,	20h
 		mov	dword ptr [wndClassEx + 4],	eax
 		
-		mov	rax,	wndProc
-		mov	qword ptr [wndClassEx + 8], rax
+		mov	rax,	DefWindowProcA
+		mov	qword ptr [wndClassEx + 8],	rax
 		
 		xor	rax,	rax
-		mov	dword ptr [wndClassEx + 16], eax
-		mov	dword ptr [wndClassEx + 20], eax
+		mov	dword ptr [wndClassEx + 16],	eax
+		mov	dword ptr [wndClassEx + 20],	eax
 		
-		mov	qword ptr [wndClassEx + 24], rax
-		mov 	qword ptr [wndClassEx + 32], rax
-		mov 	qword ptr [wndClassEx + 40], rax
-		mov 	qword ptr [wndClassEx + 48], rax
-		mov 	qword ptr [wndClassEx + 56], rax
+		mov	qword ptr [wndClassEx + 24],	rax
+		mov 	qword ptr [wndClassEx + 32],	rax
+		mov 	qword ptr [wndClassEx + 40],	rax
+		mov 	qword ptr [wndClassEx + 48],	rax
+		mov 	qword ptr [wndClassEx + 56],	rax
 		mov	rax,	className	
-		mov 	qword ptr [wndClassEx + 64], rax
+		mov 	qword ptr [wndClassEx + 64],	rax
 		xor	rax,	rax		
-		mov 	qword ptr [wndClassEx + 72], rax
+		mov 	qword ptr [wndClassEx + 72],	rax
 		
 		; registering window
 		mov	rcx,	wndClassEx
 		call	regcls
 
 		; creating window
-		mov	rcx,	0		; dwStyle
+		mov	rcx,	0		; dwStyleEx
 		mov	rdx,	className	; lpClassName
 		mov	r8,	className	; lpWindowName
 		xor	r9,	r9
-		mov	r9,	0		; dwStyle
+		mov	r9,	12582912	; dwStyle
 		xor	rax,	rax
 		push	rax			; lpParam
 		push	rax			; hInstance
@@ -106,20 +96,19 @@ public 	WinMain
 		mov	rdx,	5			; window show state
 		call	shwnd
 
+		; starting endless loop
+		DURING:
+			jmp	DURING
+;------------ UNREACHABLE CODE ---------------
+
 		; cleaning stack frame
 		mov	rsp,	rbp
 		; restoring stack
 		pop	rbp
 
-		; exiting cleanly
-		;mov 	rcx,	0
-		;call 	exit
+		; assembler will add return at end itself
 		
 	WinMain ENDP
-
-	wndProc PROC
-		ret
-	wndProc	ENDP
 
 ; pointing end of life
 END
