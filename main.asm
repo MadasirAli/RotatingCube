@@ -6,7 +6,6 @@
 ;	Last Modified	: 22 / 9 / 2023	
 ; -------------------------------------------------------------------------------------
 
-;INCLUDE		utils.asm
 INCLUDE		winutils.asm
 
 ; default data segment
@@ -47,7 +46,7 @@ public 	WinMain
 		mov	eax,	20h
 		mov	dword ptr [wndClassEx + 4],	eax
 		
-		mov	rax,	DefWindowProcA
+		mov	rax,	wndproc
 		mov	qword ptr [wndClassEx + 8],	rax
 		
 		xor	rax,	rax
@@ -90,6 +89,8 @@ public 	WinMain
 		call	crtewnd			
 		; saving window handle
 		mov	qword ptr [wndHnd], rax
+		; cleaning params from stack
+		add	rsp,	64
 
 		; showing window
 		mov	rcx,	qword ptr [wndHnd]	; handle to window
@@ -97,30 +98,68 @@ public 	WinMain
 		call	shwnd
 
 		; starting endless loop
+		mov	rax,	1	; setting 1 to prevent exit
 		DURING:
+			; getting message from queue
 			mov	rcx,	MSG
 			xor	rdx,	rdx
 			mov	r8,	rdx
 			mov	r9,	rdx
 			call	getmsg
-			
+			; translating message to add character message to queue
 			mov	rcx,	MSG
 			call	transmsg
-		
+			; dispatching message from queue to message handler
 			mov	rcx,	MSG
 			call	dismsg
-			
 			jmp	DURING
-;------------ UNREACHABLE CODE ---------------
-
+		DONE:
+			nop
 		; cleaning stack frame
 		mov	rsp,	rbp
 		; restoring stack
 		pop	rbp
-
-		; assembler will add return at end itself
-		
+		; exiting process
+		ret
 	WinMain ENDP
+
+; --------------------------------------------------------------------
+; PROCEDURE
+;	Name		: wndproc
+;	Description	: Intercepts windows messages
+;	
+;	Parametres	:-
+;			    rcx = handle to window
+;			    rdx = address to message
+;			    r8  = wParam
+;     			    r9  = lParam
+;	Returns		: Anything.
+; --------------------------------------------------------------------
+	wndproc	PROC
+			; saving old stack pointer
+			push	rbp
+			; creating new stack frame
+			mov	rbp,	rsp
+
+			; CUSTOM MESSAGE HANDLING CAN BE DONE HERE
+			;_________________________________________
+			;---------------> HERE <------------------
+			;_________________________________________
+
+			; adding shadow space
+			sub	rsp,	32
+
+			; calling default window procedure
+			call	DefWindowProcA
+
+			; cleaning shadow space
+			add	rsp,	32
+
+			; restoring stack
+			pop	rbp
+			; returning to caller
+			ret
+	wndproc	ENDP
 
 ; pointing end of life
 END

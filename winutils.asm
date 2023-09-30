@@ -319,7 +319,7 @@ DispatchMessageA	PROTO
 		; cleaning shadow space
 		add	rsp,	32
 		; restoring stack
-		pop	rbx
+		pop	rbp
 
 		; returning to caller
 		ret
