@@ -13,11 +13,26 @@ RegisterClassExA	PROTO
 CreateWindowExA		PROTO
 ShowWindow		PROTO
 DefWindowProcA		PROTO
+GetMessageA		PROTO	
+TranslateMessage	PROTO
+DispatchMessageA	PROTO
 
 .data
-	; defining windows class stuture
+	; MSG
+	MSG_SIZE	equ	46
+	MSG:
+		qword	0	; hWnd
+		dword	0	; message
+		word	0	; wParam
+		qword	0	; lParam
+
+		dword	0	; time
+		POINT: 
+			qword	0	; X
+			qword	0	; Y
+		dword	0	; lPrivate
+
 	; WNDCLASSEX
-	; ENDCLASSEX	SIZE
 	WNDCLASSEX_SIZE	equ	80
 	WNDCLASSEX:
 	dword	0	; cbSize
@@ -41,6 +56,109 @@ DefWindowProcA		PROTO
 
 .code
 ; -----------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: dismsg
+;	Description	: Dispatchs a message to the windows procedure
+;
+;	Parametres	:-
+;			    rcx = address of the message strucure 
+;	Returns		: value returned by the Windows Procedure
+; -----------------------------------------------------------------------------------
+	dismsg	PROC
+		; setting up stack
+		; saving old base pointer
+		 push	rbp
+		; setting new stack frame
+		mov	rbp,	rsp
+
+		; cleaning register params
+		xor	rdx,	rdx
+		mov	r8,	rdx
+		mov	r9,	rdx
+
+		; adding shadow space
+		sub	rsp,	32
+
+		; calling win32 api
+		call	DispatchMessageA
+
+		; cleaning shadow space
+		add	rsp,	32
+		
+		; restoring stack
+		pop	rbp
+		; returning to caller
+		ret
+	dismsg	ENDP
+; -----------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: trnsmsg
+;	Description	: Translates virtual key messages into character messages and post them to message queue.
+;
+;	Parametres	:-
+;			    rcx = address of the message structure.
+;	Returns		: for non character keys the value is non zero.
+; -----------------------------------------------------------------------------------
+	transmsg	PROC
+		; setting up stack
+		; saving old stack base pointer
+		push	rbp
+		; setting new stack frame
+		mov	rbp,	rsp
+
+		; cleaning register params
+		xor	rdx,	rdx
+		mov	r8,	rdx
+		mov 	r9,	rdx
+
+		; adding shadow space
+		sub	rsp, 	32
+
+		; calling win32 api
+		call	TranslateMessage
+
+		; cleaning shadow space
+		add 	rsp,	32
+
+		; restoring stack
+		pop	rbp
+		; returning to caller
+		ret
+	transmsg	ENDP
+; -----------------------------------------------------------------------------------
+;  PRECEDURE
+;	Name		: getmsg
+;	Description	: Fetch a massage from queue.
+;
+;	Parametres	:-
+;			    rcx = address of the massage strucutre
+;			    rdx = handle to the window [opt]
+;			    r8  = wMsgFilterMin
+;			    r9  = wMsgFilterMax
+;	Returns		:   0 for WM_QUIT and non zero for other messages
+; -----------------------------------------------------------------------------------
+	getmsg	PROC
+		; settting stack
+		; saving old stack pointer
+		push 	rbp
+		; setting new stack frame
+		mov	rbp,	rsp
+
+		; adding shadow space
+		sub	rsp,	32
+		
+		; calling win32 api
+		call	GetMessageA
+
+		; cleaning shadow space
+		add 	rsp,	32
+
+		; restoring stack	
+		pop 	rbp
+		; returning to caler
+		ret
+	getmsg	ENDP
+; -----------------------------------------------------------------------------------
 ; PROCEDURE
 ;	Name		: dwndp
 ;	Description	: Default Windows Message Handler
@@ -50,8 +168,7 @@ DefWindowProcA		PROTO
 ;			    rdx = address of message
 ;			    r8 	= lParam	
 ;			    r9	= hParam
-;	Returns		: LResult 
-;	
+;	Returns		: LResult 	
 ; -----------------------------------------------------------------------------------
 	dwndp	PROC
 		; setting stack

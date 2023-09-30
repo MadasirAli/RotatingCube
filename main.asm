@@ -98,6 +98,15 @@ public 	WinMain
 
 		; starting endless loop
 		DURING:
+			mov	rcx,	MSG
+			call	getmsg
+			
+			mov	rcx,	MSG
+			call	transmsg
+		
+			mov	rcx,	MSG
+			call	dismsg
+			
 			jmp	DURING
 ;------------ UNREACHABLE CODE ---------------
 
