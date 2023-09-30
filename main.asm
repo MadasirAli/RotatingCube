@@ -99,6 +99,9 @@ public 	WinMain
 		; starting endless loop
 		DURING:
 			mov	rcx,	MSG
+			xor	rdx,	rdx
+			mov	r8,	rdx
+			mov	r9,	rdx
 			call	getmsg
 			
 			mov	rcx,	MSG
