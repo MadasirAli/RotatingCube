@@ -16,6 +16,7 @@ DefWindowProcA		PROTO
 GetMessageA		PROTO	
 TranslateMessage	PROTO
 DispatchMessageA	PROTO
+PostQuitMessage		PROTO
 
 .data
 	; MSG
@@ -54,7 +55,43 @@ DispatchMessageA	PROTO
 	WND_WIDTH	equ	800
 	WND_HEIGHT	equ	600
 
+	WM_CLOSE	equ	16
+
 .code
+; -----------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: pquitmsg
+;	
+;	
+;	Parametres	:-
+;			    rcx = wParam value of message
+;	Returns		: None
+; -----------------------------------------------------------------------------------
+	pquitmsg PROC
+		; saving old stack base pointer
+		push	rbp
+		; creating new stack frame
+		mov	rbp,	rsp
+		
+		; adding shadow space
+		sub	rsp,	32
+
+		; cleaning params registers
+		xor	rdx,	rdx
+		mov	r8,	rdx	
+		mov	r9,	rdx
+
+		; calling win32 api
+		call	PostQuitMessage
+		
+		; cleaning shadow space
+		add	rsp,	32
+
+		; restoring stack
+		pop	rbp
+		; returning to caller
+		ret
+	pquitmsg ENDP
 ; -----------------------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: dismsg

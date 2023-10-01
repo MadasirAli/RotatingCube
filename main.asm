@@ -15,9 +15,6 @@ INCLUDE		winutils.asm
 	wndHnd:
 		qword	0
 
-; exposing main symbol
-public 	WinMain
-
 ; default code segment equilent to ".text" segment of nasm
 .code
 	WinMain PROC
@@ -72,7 +69,7 @@ public 	WinMain
 		mov	rdx,	className	; lpClassName
 		mov	r8,	className	; lpWindowName
 		xor	r9,	r9
-		mov	r9,	12582912	; dwStyle
+		mov	r9,	13110200	; dwStyle
 		xor	rax,	rax
 		push	rax			; lpParam
 		push	rax			; hInstance
@@ -106,15 +103,21 @@ public 	WinMain
 			mov	r8,	rdx
 			mov	r9,	rdx
 			call	getmsg
-			; translating message to add character message to queue
-			mov	rcx,	MSG
-			call	transmsg
-			; dispatching message from queue to message handler
-			mov	rcx,	MSG
-			call	dismsg
-			jmp	DURING
+			; checking the receive of PostQuitMessage
+			cmp	rax,	0
+			je	DONE
+			DISPATCH_MSG:
+				; translating character messages
+				mov	rcx,	MSG
+				call	transmsg
+				; dispatching message to wndproc
+				mov	rcx,	MSG
+				call	dismsg
+		jmp	DURING
 		DONE:
-			nop
+			; getting return code
+			xor	rax,	rax
+			mov	ax,	word ptr [MSG + 12]
 		; cleaning stack frame
 		mov	rsp,	rbp
 		; restoring stack
@@ -130,7 +133,7 @@ public 	WinMain
 ;	
 ;	Parametres	:-
 ;			    rcx = handle to window
-;			    rdx = address to message
+;			    rdx = dword message
 ;			    r8  = wParam
 ;     			    r9  = lParam
 ;	Returns		: Anything.
@@ -144,21 +147,37 @@ public 	WinMain
 			; CUSTOM MESSAGE HANDLING CAN BE DONE HERE
 			;_________________________________________
 			;---------------> HERE <------------------
+			; WM_CLOSE
+			cmp	edx,	WM_CLOSE
+			je	WM_CLOSE_MSG
+			
+			; sending to default handler
+			jmp	DEFAULT
 			;_________________________________________
 
-			; adding shadow space
-			sub	rsp,	32
+			WM_CLOSE_MSG:
+				; causing get message to return 0
+				mov	rcx,	0
+				call	pquitmsg
+				xor	rax,	rax
+				jmp	RETURN
 
-			; calling default window procedure
-			call	DefWindowProcA
+			DEFAULT:
 
-			; cleaning shadow space
-			add	rsp,	32
+				; adding shadow space
+				sub	rsp,	32
 
-			; restoring stack
-			pop	rbp
-			; returning to caller
-			ret
+				; calling default window procedure
+				call	DefWindowProcA
+
+				; cleaning shadow space
+				add	rsp,	32
+			
+			RETURN:
+				; restoring stack
+				pop	rbp
+				; returning to caller
+				ret
 	wndproc	ENDP
 
 ; pointing end of life
