@@ -1,11 +1,12 @@
 ; -------------------------------------------------------------------------------------
-;	Name		: SegmentMemoryPermissionsTest
-;	Description	: Checks the memory write permission to .data segment defined by masm.
+;	Name		: main.asm
+;	Description	: 
 ;	
 ;	Date Created	: 22 / 9 / 2023
 ;	Last Modified	: 22 / 9 / 2023	
 ; -------------------------------------------------------------------------------------
 
+INCLUDE		crt.asm
 INCLUDE		winutils.asm
 
 ; default data segment
@@ -15,8 +16,43 @@ INCLUDE		winutils.asm
 	wndHnd:
 		qword	0
 
+	HELLOSTR:
+		byte	"Hello World", 0
+
 ; default code segment equilent to ".text" segment of nasm
 .code
+	main	PROC
+		; setting stack
+		; saving old stack base pointer
+		push	rbp
+		; setting new stack frame
+		mov	rbp,	rsp
+
+		; saving non volatile registers
+		push	rbx
+		push	rbx
+		; cleaning volatile registers
+		xor	rax,	rax
+		mov	rcx,	rax
+		mov	rdx,	rax
+		mov	r8,	rax
+		mov	r9,	rax
+		mov	r10,	rax
+		mov	r11,	rax
+
+		; calling the WinMain Entry Point
+		call	WinMain
+
+		; restoring non volatile registers
+		pop	rbx	
+		pop	rbx
+			
+		; restoring stack
+		pop	rbp
+		; exiting process
+		ret
+	main	ENDP
+
 	WinMain PROC
 		; setting  stack
 		; saving old stack base		
@@ -24,15 +60,17 @@ INCLUDE		winutils.asm
 		; setting new stack frame
 		mov	rbp,	rsp
 
+		; greetings
+		mov	rcx,	HELLOSTR
+		call 	print
+
 		; cleaning registers
 		xor	rax,	rax
 		mov	rbx,	rax
 		mov	rcx,	rax
 		mov	rdx,	rax
-		mov 	r8,	rax
-		mov 	r9,	rax
-		
-		; running test
+		mov	r8,	rax
+		mov	r9,	rax
 					
 		; registering window
 		; filling WNDCLASSEX
