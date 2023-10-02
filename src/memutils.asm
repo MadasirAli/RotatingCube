@@ -6,14 +6,112 @@
 ;	Last Modified	: 25 / 9 / 2023
 ; ------------------------------------------------------------------------------------
 
-; ------------------------------------------------------------------------------------
-; Externel References
 INCLUDELIB	kernel32.lib
 
-; EXTERNAL PROTOTYPES
+HeapAlloc		PROTO
+GetProcessHeap		PROTO
+CreateHeap		PROTO
+HeapDestroy		PROTO
 
+.data
+	; Flags
 
+	HEAP_GENERATE_EXCEPTIONS	equ	4h
+	HEAP_NO_SERIALIZE		equ	1h
+	HEAP_ZERO_MEMORY		equ	8h
+
+	HEAP_CREATE_ENABLE_EXECUTE	equ	262144	
 .code
+; ------------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: destheap
+;	Description	: Destroys Heap Block.
+;
+;	Parametres	:-
+;			    rcx = address to the heap
+;	Returns		: non zero for succession, 0 for error
+; ------------------------------------------------------------------------------------
+	destheap PROC
+		push	rbp
+		mov	rbp,	rsp
+		sub	rsp,	32
+		call 	DestroyHeap
+		add	rsp,	32
+		pop	rbp
+		ret
+	destheap ENDP
+; ------------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: heapcrte
+;	Description	: Create a private heap.
+;
+;	Parametres	:-
+;			   rcx = fpOptions
+;			   rdx = dwInitSize
+;			   r8  = dwMaxSize
+;	Returns		: address of new heap, or 0 for failture
+; ------------------------------------------------------------------------------------
+	heapcrte PROC
+		push	rbp
+		mov	rbp,	rsp
+		sub	rsp,	32
+		call	CreateHeap
+		add	rsp,	32
+		pop	rbp
+		ret
+	heapcrte ENDP
+; ------------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: getprocheap
+;	Description	: Retrives process default heap.
+;
+;	Parametres	: None
+;	Returns		: Address of the heap, else 0 for failture
+; ------------------------------------------------------------------------------------
+	getprocheap PROC
+		; saving old stack base
+		push	rbp
+		; creating new stack frame
+		mov	rbp,	rsp
+		; adding shadow space
+		sub	rsp,	32
+		; calling win32
+		call 	GetProcessHeap
+		; cleaning shadow space
+		add	rsp,	32
+		; restoring stack
+		pop	rbp
+		; returning to caller
+		ret
+	getprocheap ENDP
+; ------------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: malloc
+;	Description	: Allocates Memory in heap
+;
+;	Parametres	:-
+;			    rcx = address of the heap 
+;			    rdx = dwFlags
+;			    r8  = dwBytes
+;
+;	Returns		: address on succession, null on failture
+; ------------------------------------------------------------------------------------
+	malloc	PROC
+		; saving old stack base
+		push	rbp
+		; creating new stack frame
+		mov	rbp,	rsp
+		; adding shadow space
+		sub	rsp,	32
+		; calling win32
+		call	HeapAlloc
+		; cleaning shadow space
+		add	rsp,	32
+		; restoring stack
+		pop	rbp
+		; returning to caller
+		ret
+	malloc	ENDP
 ; ------------------------------------------------------------------------------------
 ; PROCEDURE
 ;	Name		: memcpy
