@@ -23,9 +23,8 @@ printf		PROTO
 ; ------------------------------------------------------------------------------------
 	print PROC
 		; cleaning registers	
-		xor 	rdx,	rdx
-		mov 	r8,	rdx
-		mov 	r9,	rdx
+		xor 	r8,	r8
+		mov 	r9,	r8
 
 		; Setting up stack
 		; saving old stack base

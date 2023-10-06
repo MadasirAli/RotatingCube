@@ -6,8 +6,10 @@
 ;	Last Modified	: 22 / 9 / 2023	
 ; -------------------------------------------------------------------------------------
 
-INCLUDE		crt.asm
+;INCLUDE		crt.asm
 INCLUDE		winutils.asm
+INCLUDE		conutils.asm
+INCLUDE		io.asm
 
 ; default data segment
 .data
@@ -15,9 +17,12 @@ INCLUDE		winutils.asm
 		byte	"WINDOW", 0
 	wndHnd:
 		qword	0
-
-	HELLOSTR:
-		byte	"Hello World", 0
+	fr_:
+		byte	128 dup (77)
+	stdHnd:
+		qword	0
+	tmp:
+		qword	0
 
 ; default code segment equilent to ".text" segment of nasm
 .code
@@ -40,6 +45,23 @@ INCLUDE		winutils.asm
 		mov	r10,	rax
 		mov	r11,	rax
 
+		; creating a console
+		call	alcon
+		xor	rcx,	rcx
+		;call	atcon
+		; getting std handle
+		mov	rcx,	STD_OUTPUT_HANDLE
+		call	getstdh
+		mov	qword ptr [stdHnd], 	rax
+		mov	rcx,	rax
+		mov	rdx,	fr_
+		mov	r8,	64
+		mov	r9,	tmp
+		xor	rax,	rax
+		push	rax
+		call	wrtefil	
+		pop	rax	
+
 		; calling the WinMain Entry Point
 		call	WinMain
 
@@ -59,10 +81,6 @@ INCLUDE		winutils.asm
 		push	rbp
 		; setting new stack frame
 		mov	rbp,	rsp
-
-		; greetings
-		mov	rcx,	HELLOSTR
-		call 	print
 
 		; cleaning registers
 		xor	rax,	rax
@@ -185,6 +203,21 @@ INCLUDE		winutils.asm
 			; CUSTOM MESSAGE HANDLING CAN BE DONE HERE
 			;_________________________________________
 			;---------------> HERE <------------------
+
+			; logging
+		;	push	rcx
+		;	push	rdx
+		;	push	r8
+		;	push	r9
+		;	mov	rcx,	fr_
+		;	xor	rdx,	rdx
+		;	mov	dx,	r8w
+		;	call	print
+		;	pop	r9
+		;	pop	r8
+		;	pop	rdx
+		;	pop	rcx
+
 			; WM_CLOSE
 			cmp	edx,	WM_CLOSE
 			je	WM_CLOSE_MSG
