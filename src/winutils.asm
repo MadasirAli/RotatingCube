@@ -17,6 +17,7 @@ GetMessageA		PROTO
 TranslateMessage	PROTO
 DispatchMessageA	PROTO
 PostQuitMessage		PROTO
+PeekMessageA		PROTO
 
 .data
 	; MSG
@@ -56,12 +57,42 @@ PostQuitMessage		PROTO
 	WND_HEIGHT	equ	600
 
 	WM_CLOSE	equ	16
+	WM_QUIT		equ	18
+
+	PM_NONREMOVE	equ	0
+	PM_REMOVE	equ	1
+	PM_NOYEILD	equ	2
 
 .code
 ; -----------------------------------------------------------------------------------
 ;  PROCEDURE
+;	Name		: pekmsg
+;	Description	: Pops a Message from message queue if available
+;
+;	Parametres	:-
+;			   rcx = lpMsg
+;			   rdx = hWnd
+;			   r8  = wMsgFilerMin
+;			   r9  = wMsgFilterMax
+;			   stack: wRemoveMsg
+;	Returns		: [Boolean] 0 for no message available and non zero for message
+; -----------------------------------------------------------------------------------
+	pekmsg	PROC
+		push	rbp
+		mov	rbp,	rsp
+		mov	rax,	qword ptr [rsp + 16]
+		push	rax
+		sub	rsp,	32
+		call	PeekMessageA
+		add	rsp,	32
+		add	rsp,	8
+		pop	rbp
+		ret
+	pekmsg	ENDP
+; -----------------------------------------------------------------------------------
+;  PROCEDURE
 ;	Name		: pquitmsg
-;	
+;	Description	: Makes GetMessage to return 0
 ;	
 ;	Parametres	:-
 ;			    rcx = wParam value of message

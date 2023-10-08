@@ -154,16 +154,22 @@ INCLUDE		input.asm
 		call	shwnd
 
 		; starting endless loop
-		mov	rax,	1	; setting 1 to prevent exit
 		DURING:
-			; getting message from queue
+			; getting message from queue if available
 			mov	rcx,	MSG
 			xor	rdx,	rdx
 			mov	r8,	rdx
 			mov	r9,	rdx
-			call	getmsg
-			; checking the receive of PostQuitMessage
+			mov	rax,	PM_REMOVE
+			push	rax		; adding stack arg
+			call	pekmsg
+			add	rsp,	8	; cleaning stack arg
 			cmp	rax,	0
+			jz	DURING
+			; checking if WM_QUIT or PostQuitMessage
+			xor	rax,	rax
+			mov	eax,	dword ptr [MSG + 8]
+			cmp	eax,	WM_QUIT
 			je	DONE
 			DISPATCH_MSG:
 				; translating character messages
