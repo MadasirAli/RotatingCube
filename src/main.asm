@@ -10,6 +10,7 @@
 INCLUDE		winutils.asm
 INCLUDE		conutils.asm
 INCLUDE		io.asm
+INCLUDE		input.asm
 
 ; default data segment
 .data
@@ -44,6 +45,8 @@ INCLUDE		io.asm
 		mov	r9,	rax
 		mov	r10,	rax
 		mov	r11,	rax
+
+		call	fndievntu
 
 		; creating a console
 		call	alcon
