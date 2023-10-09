@@ -8,7 +8,7 @@ AttachConsole		PROTO
 .data
 	; CHAR_INFO
 	CHAR_INFO_SIZE:
-		qword	32
+		qword	4
 	CHAR_INFO:
 		word	0	; uniCode or asCII
 		word	0 	; attributesv

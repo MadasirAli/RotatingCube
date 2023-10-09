@@ -58,7 +58,7 @@ INCLUDE		io/input.asm
 		mov	qword ptr [stdHnd], 	rax
 		mov	rcx,	rax
 		mov	rdx,	fr_
-		mov	r8,	64
+		mov	r8,	4
 		mov	r9,	tmp
 		xor	rax,	rax
 		push	rax
