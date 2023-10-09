@@ -19,6 +19,7 @@ INCLUDE		io/input.asm
 	wndHnd:
 		qword	0
 	fr_:
+		dword	2588h
 		byte	128 dup (77)
 	stdHnd:
 		qword	0
