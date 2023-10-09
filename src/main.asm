@@ -7,10 +7,10 @@
 ; -------------------------------------------------------------------------------------
 
 ;INCLUDE		crt.asm
-INCLUDE		winutils.asm
-INCLUDE		conutils.asm
-INCLUDE		io.asm
-INCLUDE		input.asm
+INCLUDE		rt/winrt.asm
+INCLUDE		rt/conrt.asm
+INCLUDE		io/io.asm
+INCLUDE		io/input.asm
 
 ; default data segment
 .data
