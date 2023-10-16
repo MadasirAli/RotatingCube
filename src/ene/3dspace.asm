@@ -29,8 +29,8 @@
 		mov	rbp,	rsp
 		
 		; getting dot offset in linear from 3d coordinates
-		imul	rcx,	rdx
-		imul	rcx,	r8
+		imul	rcx,	r10
+		imul	rcx,	r10
 		; obtaining dot
 		mov	rax,	qword ptr [r9 + rcx]
 
@@ -50,6 +50,8 @@
 ;	r8  = pointer to global space
 ;	r9  = pointer to 3d space mesh data
 ;	Stack:	size of the mesh data
+;		size of local space
+;	 	size of global space
 ;
 ;	Returns:	
 ; ------------------------------------------------------------------------------------
@@ -59,7 +61,9 @@
 		mov	rbp,	rsp
 
 		; retriving stack parametres
-		mov	r10,	qword ptr [rsp + 16]
+		mov	r10,	qword ptr [rsp + 16]	; size of mesh data
+		mov	r11,	qword ptr [rsp + 24]	; size of local space
+		mov	r12,	qword ptr [rsp + 32]	; size of global space
 
 		; initial draw in local space
 		push	rcx
@@ -67,17 +71,25 @@
 		push	r8
 		push	r9
 		push	r10
+		push	r11
+		push	r12
 		mov	r11,	rcx
 		mov	rcx,	r9	; mesh data
 		mov	rdx,	rdx	; local space
 		mov	r8,	r10	; mesh data dots count
 		mov	r9,	r11	; transform
+		push	r11		; size of local space
 		call	_initdrw
+		pop	r12
+		pop	r11
 		pop	r10
 		pop	r9
 		pop	r8
 		pop	rdx
 		pop	rcx
+
+		; cleaning parametre from stack
+		sub	rsp,	8
 
 		; IN COMPLETE ______________________________________________	
 
@@ -97,6 +109,7 @@
 ;	rdx = pointer to local space
 ;	r8  = mesh data length
 ;	r9  = pointer to transform
+;	Stack:-	size of local space
 ;
 ;	Returns		: NONE
 ; -----------------------------------------------------------------------------------
@@ -105,9 +118,17 @@
 		push	rbp
 		mov	rbp,	rsp
 
-		; ____________ CLEANING LOCAL SPACE ____________ ;
-		; ------------> In Complete < -------------------;
-		; _______________________________________________;
+		; retriving stack parametres
+		mov	r15,	qword ptr [rsp + 16]	; size of local space
+
+		; saving volatile registers (are currently holding parametres for this procedure)
+		push	rcx
+		push	rdx
+		mov	rcx,	rdx
+		mov	rdx,	r15
+		call	_clenspce	
+		pop	rdx
+		pop	rcx
 		
 		; enumerating mesh dots
 		; saving non volatile registers
@@ -127,7 +148,13 @@
 			mov	r12,	qword ptr [rbx + 16]	; dot's z coord
 			; ________________________________________________
 			; -------------- > In Complete < ----------------;
-			mov	[rdx ]		
+			; getting coordinate in linear space
+			imul	r10,	r11
+			imul	r10,	r12	; product of 3 coordinates (x * y * z)
+			; getting current dot pixel and color
+			xor	r13,	r13
+			mov	r13d,	dword ptr [rbx + 24]
+			mov	dword ptr [rdx + r10], 	r13d	; writing the mesh pixel and color at 		
 			; ________________________________________________	
 			; adding offset to point to next pointer
 			add	rcx,	SIZEOF qword
@@ -164,7 +191,7 @@
 		mov	rbp,	rsp
 
 		; saving non volatile registers
-		push	rdi
+		push	rsi
 		
 		; iternating through space
 		; setting counters
@@ -174,7 +201,7 @@
 			je	DONE
 			; rcx pointing to current dot
 			; setting current dot to 0
-			mov	dword ptr [rcx],	0
+			mov	dword ptr [rcx],	0	; word char code, word color
 			inc	rsi
 			add	rcx,	SIZEOF qword
 			jmp	DURING
@@ -182,7 +209,7 @@
 			nop
 
 		; restoring non volatile registers
-		pop	rdi
+		pop	rsi
 
 		; restoring stack
 		pop rbp
@@ -231,4 +258,6 @@
 		qword	0	; y-dimensions
 		qword	0 	; z-dimensions
 		qword	0	; pointer to raw space
+
+; vim:ft=masm
 			
