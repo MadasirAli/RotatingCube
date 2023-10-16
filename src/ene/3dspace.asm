@@ -39,7 +39,7 @@
 		; returning to caller
 		ret
 	get3dd	ENDP
-; -------------------------------------------------------------------------------------
+; ------------------------------------------------------------------------------------
 ;  PRODECURE
 ;	Name		: drw3dspce
 ;	Description	: Rewrites the Local 3D space
@@ -50,9 +50,9 @@
 ;	r8  = pointer to global space
 ;	r9  = pointer to 3d space mesh data
 ;	Stack:	size of the mesh data
-
+;
 ;	Returns:	
-; -------------------------------------------------------------------------------------
+; ------------------------------------------------------------------------------------
 	drw3dspce	PROC
 		; setting up stack
 		push	rbp
@@ -67,14 +67,19 @@
 		push	r8
 		push	r9
 		push	r10
-		mov	rcx,	r9
-		mov	r8,	r10
+		mov	r11,	rcx
+		mov	rcx,	r9	; mesh data
+		mov	rdx,	rdx	; local space
+		mov	r8,	r10	; mesh data dots count
+		mov	r9,	r11	; transform
 		call	_initdrw
 		pop	r10
 		pop	r9
 		pop	r8
 		pop	rdx
-		pop	rcx	
+		pop	rcx
+
+		; IN COMPLETE ______________________________________________	
 
 		; restoring stack
 		pop	rbp
@@ -82,37 +87,57 @@
 		ret
 	drw3dspce	ENDP
 
+; -----------------------------------------------------------------------------------
+;  PROCEDURE (Internal)
+;	Name		: _initdrw
+;	Description	: Redraws the mesh in local space without transformations.
+;
+;	Parametres	:-
+;	rcx = pointer to mesh data
+;	rdx = pointer to local space
+;	r8  = mesh data length
+;	r9  = pointer to transform
+;
+;	Returns		: NONE
+; -----------------------------------------------------------------------------------
 	_initdrw	PROC
 		; setting up stack
 		push	rbp
 		mov	rbp,	rsp
+
+		; ____________ CLEANING LOCAL SPACE ____________ ;
+		; ------------> In Complete < -------------------;
+		; _______________________________________________;
 		
 		; enumerating mesh dots
-		; saving buffer registers
+		; saving non volatile registers
 		push	rbx
 		; saving counters
-		push	rsi
-		push	rdi
+		push	rsi	; holding count
 		; clearing counters
 		xor	rsi,	rsi
 		mov	rdi,	rsi
 		DURING:
 			cmp	rsi,	r8
 			je	DONE
-			; getting current dot
-			mov	rbx,	qword ptr [r8 + rdi]
+			; rbx pointing to next dot
+			; reading current dot coordinates
+			mov	r10,	qword ptr [rbx]		; dot's x coord
+			mov	r11,	qword ptr [rbx + 8] 	; dot's y coord
+			mov	r12,	qword ptr [rbx + 16]	; dot's z coord
 			; ________________________________________________
 			; -------------- > In Complete < ----------------;
+			mov	[rdx ]		
 			; ________________________________________________	
-			; adding offset to point to next dot
-			add	rdi_SIZE
+			; adding offset to point to next pointer
+			add	rcx,	SIZEOF qword
 			; contineuing loop
 			jmp	DURING
 		DONE:
 			nop
 		; restoring counters
-		pop	rdi
 		pop	rsi	
+		; restoring non volatile registers
 		pop	rbx	
 
 		; resotring stack	
@@ -121,11 +146,55 @@
 		ret
 	_initdrw	ENDP
 
+; ----------------------------------------------------------------------------------
+;  PROCEDURE (Internal)
+;	Name		: _clenspce
+;	Description	: Overwrites the given space to 0
+;
+;	Parametres	:-
+;	rcx = pointer to space
+; 	rdx = length of space
+;
+;	Returns		: NONE
+; ----------------------------------------------------------------------------------
+	_clenspce	PROC
+		; saving callers stack
+		push	rbp
+		; creating new stack frame
+		mov	rbp,	rsp
+
+		; saving non volatile registers
+		push	rdi
+		
+		; iternating through space
+		; setting counters
+		xor	rdi,	rdi	; offset
+		DURING:
+			cmp	rsi,	rdx
+			je	DONE
+			; rcx pointing to current dot
+			; setting current dot to 0
+			mov	dword ptr [rcx],	0
+			inc	rsi
+			add	rcx,	SIZEOF qword
+			jmp	DURING
+		DONE:
+			nop
+
+		; restoring non volatile registers
+		pop	rdi
+
+		; restoring stack
+		pop rbp
+		; returning to caller
+		ret
+	_clenspce	ENDP
+
 	_trnspos	PROC
 		; setting up stack
 		push	rbp
 		mov	rbp,	rsp
-	
+		; IN COMPLETE _____________________________________	
 		; resotring stack
 		pop	rbp
 		; returning to caller
