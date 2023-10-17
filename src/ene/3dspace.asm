@@ -27,12 +27,27 @@
 		; setting up stack
 		push	rbp
 		mov	rbp,	rsp
+
+		; saving non-volatile registers
+		push	r12
 		
 		; getting dot offset in linear from 3d coordinates
-		imul	rcx,	r10
-		imul	rcx,	r10
+		mov	r10,	1
+		mov	r11,	1
+		mov	r12,	1
+		cmp	rcx, 	0
+		cmovne	r10,	rcx
+		cmp	rdx,	0
+		cmovne	r11,	rdx
+		cmp	r8,	0
+		cmovne	r12,	r8
+		imul	r10,	r11
+		imul	r10,	r12
 		; obtaining dot
-		mov	rax,	qword ptr [r9 + rcx]
+		mov	rax,	qword ptr [r9 + r10]
+
+		; restoring non volatile registers
+		pop	r12
 
 		; cleaning up stack
 		pop	rbp
@@ -91,6 +106,8 @@
 		; cleaning parametre from stack
 		sub	rsp,	8
 
+		; ________ TRANSFORMING ___________
+
 		; IN COMPLETE ______________________________________________	
 
 		; restoring stack
@@ -138,26 +155,42 @@
 		; clearing counters
 		xor	rsi,	rsi
 		mov	rdi,	rsi
+		; setting current buffer pointer to dots
+		mov	rbx,	rcx
 		DURING:
 			cmp	rsi,	r8
 			je	DONE
-			; rbx pointing to next dot
 			; reading current dot coordinates
 			mov	r10,	qword ptr [rbx]		; dot's x coord
 			mov	r11,	qword ptr [rbx + 8] 	; dot's y coord
 			mov	r12,	qword ptr [rbx + 16]	; dot's z coord
-			; ________________________________________________
-			; -------------- > In Complete < ----------------;
 			; getting coordinate in linear space
-			imul	r10,	r11
-			imul	r10,	r12	; product of 3 coordinates (x * y * z)
+			push	rcx
+			push	rdx
+			push	r8
+			push	r9
+			push	r10
+			push	r11
+			mov	rdx,	r9	; pointer to local space
+			mov	rcx,	r10	; x coord
+			mov	rdx,	r11	; y coord
+			mov	r8,	r12	; z coord
+			call	get3dd
+			pop	r11
+			pop	r10
+			pop	r9
+			pop	r8
+			pop	rdx
+			pop	rcx
+			; rax holding pointer to current local space's dot
 			; getting current dot pixel and color
 			xor	r13,	r13
 			mov	r13d,	dword ptr [rbx + 24]
-			mov	dword ptr [rdx + r10], 	r13d	; writing the mesh pixel and color at 		
-			; ________________________________________________	
+			; checking if the dot's pixel is null
+			cmp	word ptr [rax],	0
+			cmove	dword ptr [rax], 	r13d	; writing the mesh pixel and color at local space	
 			; adding offset to point to next pointer
-			add	rcx,	SIZEOF qword
+			add	rbx,	SIZEOF qword
 			; contineuing loop
 			jmp	DURING
 		DONE:
