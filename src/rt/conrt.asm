@@ -4,6 +4,8 @@ SetConsoleTitleA	PROTO
 GetStdHandle		PROTO
 AllocConsole		PROTO
 AttachConsole		PROTO
+WriteConsoleA		PROTO
+WriteConsoleW		PROTO
 
 .data
 	; CHAR_INFO
@@ -23,6 +25,82 @@ AttachConsole		PROTO
 	ATTACH_PARENT_PROCESS	equ	-1
 
 .code
+
+; -------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: wrteconw
+;	Description	: Writes UNICODE characters to specified console standard out buffer.
+;
+;	Parametres	:-
+;	rcx = handle to $STDOUT
+;	rdx = pointer to buffer of characters to write
+;	r8  = number of characters to write
+;	r9  = numbers of characters that are written
+;	Stack:	qword (lp reserved = null)
+; -------------------------------------------------------------------------
+	wrteconw	PROC
+		; saving previous stack state
+		push	rbp
+		; creating new stack frame
+		mov	rbp, 	rsp
+		; pushing 8 bytes to align stack at 16 bits
+		xor	rax,	rax
+		push	rax
+		; retriving stack parametres
+		push	qword ptr [rsp + 24]
+		; calling win32
+		call	WriteConsoleW
+		; removing fake space alignment
+		add	rsp,	8
+		; cleaning stack parametre
+		add	rsp,	8
+		; adding shadow space
+		sub	rsp,	32
+		; cleaing shadow space
+		add	rsp,	32
+		; restoring stack
+		pop	rbp
+		; returning to caller
+		ret
+	wrteconw	ENDP
+; -------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: wrtecona
+;	Description	: Writes ASCII characters to specified console standard out buffer.
+;
+;	Parametres	:-
+;	rcx = handle to $STDOUT
+;	rdx = pointer to buffer of characters to write
+;	r8  = number of characters to write
+;	r9  = numbers of characters that are written
+;	Stack:	qword (lp reserved = null)
+; -------------------------------------------------------------------------
+	wrtecona	PROC
+		; saving previous stack state
+		push	rbp
+		; creating new stack frame
+		mov	rbp, 	rsp
+		; pushing 8 bytes to align stack at 16 bits
+		xor	rax,	rax
+		push	rax
+		; retriving stack parametres
+		push	qword ptr [rsp + 24]
+		; calling win32
+		call	WriteConsoleA
+		; removing fake space alignment
+		add	rsp,	8
+		; cleaning stack parametre
+		add	rsp,	8
+		; adding shadow space
+		sub	rsp,	32
+		; cleaing shadow space
+		add	rsp,	32
+		; restoring stack
+		pop	rbp
+		; returning to caller
+		ret
+	wrtecona	ENDP
+
 ; -------------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: atcon
@@ -98,3 +176,5 @@ AttachConsole		PROTO
 		pop	rbp
 		ret
 	getstdh	ENDP
+
+; vim:ft=masm

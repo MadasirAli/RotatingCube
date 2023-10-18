@@ -10,7 +10,7 @@ INCLUDELIB	kernel32.lib
 
 HeapAlloc		PROTO
 GetProcessHeap		PROTO
-CreateHeap		PROTO
+HeapCreate		PROTO
 HeapDestroy		PROTO
 
 .data
@@ -35,7 +35,7 @@ HeapDestroy		PROTO
 		push	rbp
 		mov	rbp,	rsp
 		sub	rsp,	32
-		call 	DestroyHeap
+		call 	HeapDestroy
 		add	rsp,	32
 		pop	rbp
 		ret
@@ -55,7 +55,7 @@ HeapDestroy		PROTO
 		push	rbp
 		mov	rbp,	rsp
 		sub	rsp,	32
-		call	CreateHeap
+		call	HeapCreate
 		add	rsp,	32
 		pop	rbp
 		ret
@@ -154,3 +154,5 @@ HeapDestroy		PROTO
 		; returning to caller
 		ret	
 	memcpy	ENDP
+
+; vim:ft=masm

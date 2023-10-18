@@ -11,6 +11,7 @@ INCLUDE		rt/winrt.asm
 INCLUDE		rt/conrt.asm
 INCLUDE		io/io.asm
 INCLUDE		io/input.asm
+INCLUDE		utils/memutils.asm
 
 ; default data segment
 .data
@@ -18,13 +19,17 @@ INCLUDE		io/input.asm
 		byte	"WINDOW", 0
 	wndHnd:
 		qword	0
-	fr_:
-		dword	2588h
-		byte	128 dup (77)
+	bffr:
+		word 20 dup (2588h)
 	stdHnd:
 		qword	0
 	tmp:
 		qword	0
+					; MB ; kb     ; bytes
+	SECONDARY_HEAP_SIZE	equ	1 * (1024) * (1024)
+	; holding pointer to secondary heap
+	S_HEAP:
+		qword 0
 
 ; default code segment equilent to ".text" segment of nasm
 .code
@@ -47,8 +52,15 @@ INCLUDE		io/input.asm
 		mov	r10,	rax
 		mov	r11,	rax
 
-		call	fndievntu
-
+		; creating secondary heap, committing memory
+		mov	rcx,	0
+		mov	rdx,	SECONDARY_HEAP_SIZE
+		mov	r8,	(SECONDARY_HEAP_SIZE * 2)	
+		call	heapcrte
+		; cheking validation
+		xor	rbx,	rbx
+		mov	qword ptr [S_HEAP],	rax	; saving pointer to the newly created heap (kernel) object
+		
 		; creating a console
 		call	alcon
 		xor	rcx,	rcx
@@ -57,14 +69,16 @@ INCLUDE		io/input.asm
 		mov	rcx,	STD_OUTPUT_HANDLE
 		call	getstdh
 		mov	qword ptr [stdHnd], 	rax
-		mov	rcx,	rax
-		mov	rdx,	fr_
-		mov	r8,	4
-		mov	r9,	tmp
-		xor	rax,	rax
-		push	rax
-		call	wrtefil	
-		pop	rax	
+		; ______________---- TESTING CONSOLE ----_____________
+		; Writing buffer full of wide characters
+		mov	rcx,	qword ptr [stdHnd]	; handle to console
+		mov	rdx,	bffr			; buffer of wide characters
+		mov	r8,	10			; number of chracters to write
+		mov	r9,	tmp			; current numbers of characters written
+		push	0				; reserved
+		call	wrteconw	
+		add	rsp,	8			; cleaning stack parametre
+		; ____________________________________________________
 
 		; calling the WinMain Entry Point
 		call	WinMain
@@ -263,3 +277,5 @@ INCLUDE		io/input.asm
 
 ; pointing end of life
 END
+
+; vim:ft=masm
