@@ -20,6 +20,7 @@ INCLUDE		utils/memutils.asm
 	wndHnd:
 		qword	0
 	bffr:
+		word 10	dup (10)
 		word 20 dup (2588h)
 	stdHnd:
 		qword	0
@@ -73,7 +74,7 @@ INCLUDE		utils/memutils.asm
 		; Writing buffer full of wide characters
 		mov	rcx,	qword ptr [stdHnd]	; handle to console
 		mov	rdx,	bffr			; buffer of wide characters
-		mov	r8,	10			; number of chracters to write
+		mov	r8,	20			; number of chracters to write
 		mov	r9,	tmp			; current numbers of characters written
 		push	0				; reserved
 		call	wrteconw	
