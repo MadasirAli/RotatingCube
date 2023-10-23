@@ -1,6 +1,6 @@
-INCLUDE 	"3dspace.asm"
-INCLUDE		"gmeobj.asm"
-INCLUDE		"rstrizr.asm"
+INCLUDE 	3dspace.asm
+INCLUDE		gmeobj.asm
+INCLUDE		rstrizr.asm
 
 .code
 ; ---------------------------------------------------------------------------------------
@@ -8,10 +8,9 @@ INCLUDE		"rstrizr.asm"
 ;	Name		: enetst
 ;	Description	: Runs the current functionality of the engine.
 ;
-;	Parametres	:-
-;	rcx = buffer to wide characters
+;	Parametres	:- None.
 ;	
-;	Returns		: None
+;	Returns		: None.
 ; ---------------------------------------------------------------------------------------
 	enetst	PROC
 		; setting stack
@@ -28,8 +27,26 @@ INCLUDE		"rstrizr.asm"
 		push	rdi
 
 		; 1- Initial Draw
+		call	initplne
+		call	initspacs
+		call	fillmesh
+		mov	rcx,	DEFAULT_3D_MESH_DATA_COUNT	; mesh data
+		mov	rdx,	DEFAULT_3D_LOCAL_SPACE		; local space
+		mov	r8,	DEFAULT_3D_MESH_DATA_COUNT	; mesh data length
+		mov	r9,	TRANSFORM			; transform
+		push		DEFAULT_3D_LOCAL_SPACE_SIZE	; size of local space
+		call	_initdrw
 		; 2- Rasterize
+		mov	rcx,	1
+		mov	rdx,	rcx
+		mov	r8,	rcx
+		mov	r9,	DEFAULT_3D_LOCAL_SPACE		; local space
+		call	con3d22d
 		; 3- Fill Buffer
+		mov	rcx,	_2D_PLANE		; plane
+		mov	rdx,	_2D_PLANE_SIZE		; plane size
+		mov	r9,	DEFAULT_PIXEL_BUFFER	; pixel buffer	
+		call	plne2pix
 
 		; restoring non volatile registers
 		pop	rdi

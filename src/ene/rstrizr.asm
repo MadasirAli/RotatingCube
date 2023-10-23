@@ -1,4 +1,19 @@
-INCLUDE		3dspace.asm
+.data
+
+	; size of the screen place
+	_2D_PLANE_SIZE_X		equ	4
+	_2D_PLANE_SIZE_Y		equ	4
+
+	MAX_DEPTH			equ	4
+	
+	_2D_PLANE_SIZE			equ	(_2D_PLANE_SIZE_X * _2D_PLANE_SIZE_Y)
+	DEFAULT_PIXEL_BUFFER_SIZE	equ	_2D_PLANE_SIZE
+
+	_2D_PLANE:
+		qword	_2D_PLANE_SIZE	dup (0)
+
+	DEFAULT_PIXEL_BUFFER:
+		word 	_2D_PLANE_SIZE	dup (0)
 
 .code
 ; -----------------------------------------------------------------------
@@ -94,7 +109,7 @@ INCLUDE		3dspace.asm
 		push	r13
 		; saving starting coords
 		mov	r11,	rcx	; starting space x coord
-		mov	r12,	rdx,	; starting space y coord
+		mov	r12,	rdx	; starting space y coord
 		mov	r13,	r8	; starting space z coord
 		DURING:
 			; getting each row one by one
@@ -153,7 +168,7 @@ INCLUDE		3dspace.asm
 				mov	rcx,	rsi		; x coord
 				mov	rdi,	rdi		; y coord
 				mov	r8,	_2D_PLANE	; space
-				call	get22d
+				call	get2dd
 				pop	r8
 				pop	rdx
 				pop	rcx
@@ -167,8 +182,9 @@ INCLUDE		3dspace.asm
 				; checking empty write
 				cmp	r9,	SIZEOF qword		
 				; writing to surface's pixel
-				cmovne	dword ptr [rax],	r15d
-				cmove	dword ptr [rax],	0	; writting null if signled
+				xor	rax,	rax			; rax = 0
+				cmove	r15d,	eax			; null will be writtenon signel
+				mov	dword ptr [rax],	r15d
 
 				pop	r14
 				pop	r15
@@ -200,17 +216,37 @@ INCLUDE		3dspace.asm
 		ret
 	con3d22d	ENDP
 
-; making a constant 3d space
-.data
-
-	; size of the screen place
-	_2D_PLANE_SIZE_X	equ	64
-	_2D_PLANE_SIZE_Y	equ	64
-
-	MAX_DEPTH		equ	64
-
-
-	_2D_PLANE:
-		qword	(_2D_PLANE_SIZE_X * _2D_PLANE_SIZE_Y)	dup (0)
+	initplne	PROC
+		push	rbp
+		mov	rbp,	rsp
+		mov	rcx,	qword ptr [S_HEAP]
+		mov	rdx,	HEAP_ZERO_MEMORY
+		mov	r8,	(_2D_PLANE_SIZE * RAW_DOT_SIZE)
+		call	malloc
+		push	rax
+		push	rbx
+		push	rsi
+		xor	rsi,	rsi
+		DURING:
+			cmp	rsi,	_2D_PLANE_SIZE
+			je	DONE
+			mov	rax,	rsi
+			imul	rax,	SIZEOF qword
+			mov	rdx,	_2D_PLANE	
+			add	rax, 	rdx
+			mov	rbx,	rsi
+			imul	rbx,	RAW_DOT_SIZE
+			mov	rcx,	qword ptr [rsp + (SIZEOF qword * 2)]		
+			add	rbx,	rcx
+			mov	qword ptr [rax],	rbx
+			inc 	rsi
+			jmp	DURING
+		DONE:
+		pop	rsi
+		pop	rbx
+		pop	rax
+		pop	rbp
+		ret
+	initplne	ENDP
 
 ; vim:ft=masm

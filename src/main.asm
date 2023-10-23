@@ -12,6 +12,7 @@ INCLUDE		rt/conrt.asm
 INCLUDE		io/io.asm
 INCLUDE		io/input.asm
 INCLUDE		utils/memutils.asm
+INCLUDE		ene/enetest.asm
 
 ; default data segment
 .data
@@ -27,7 +28,7 @@ INCLUDE		utils/memutils.asm
 	tmp:
 		qword	0
 					; MB ; kb     ; bytes
-	SECONDARY_HEAP_SIZE	equ	1 * (1024) * (1024)
+	SECONDARY_HEAP_SIZE	equ	10 * (1024) * (1024)
 	; holding pointer to secondary heap
 	S_HEAP:
 		qword 0
@@ -58,9 +59,11 @@ INCLUDE		utils/memutils.asm
 		mov	rdx,	SECONDARY_HEAP_SIZE
 		mov	r8,	(SECONDARY_HEAP_SIZE * 2)	
 		call	heapcrte
-		; cheking validation
-		xor	rbx,	rbx
 		mov	qword ptr [S_HEAP],	rax	; saving pointer to the newly created heap (kernel) object
+
+		; __________ TEST ___________
+		call	enetst	
+		; ___________________________
 		
 		; creating a console
 		call	alcon

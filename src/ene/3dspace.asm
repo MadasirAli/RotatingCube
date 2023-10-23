@@ -1,3 +1,39 @@
+.data	
+	; size of spaces in 3 dimensions
+	DEFAULT_3D_SPACE_SIZE_X		equ	8
+	DEFAULT_3D_SPACE_SIZE_Y		equ	8
+	DEFAULT_3D_SPACE_SIZE_Z		equ	8
+	
+	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	4
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	4
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	4
+	
+	DEFAULT_3D_LOCAL_SPACE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y * DEFAULT_3D_LOCAL_SPACE_SIZE_Z)
+
+	DEFAULT_3D_SPACE_SIZE		equ	(DEFAULT_3D_SPACE_SIZE_X * DEFAULT_3D_SPACE_SIZE_Y * DEFAULT_3D_SPACE_SIZE_Z)
+
+
+	; Dot Strucutre
+	DOT_SIZE	equ		28
+	RAW_DOT_SIZE	equ		4
+	RAW_DOT_OFFSET	equ		24
+
+	DOT:
+		qword	0	; local_x_coordinates
+		qword	0	; local_y_coordinates
+		qword	0	; local_z_coordinates
+		RAW_DOT:
+			word	0	; pixel
+			word	0	; background and front color
+
+	; buffer to hold 3d space
+	DEFAULT_3D_SPACE:
+		qword	DEFAULT_3D_SPACE_SIZE		dup (0)
+	
+	; buffer to hold default 2d space
+	DEFAULT_3D_LOCAL_SPACE:
+		qword	DEFAULT_3D_LOCAL_SPACE_SIZE	dup (0)
+
 .code
 ; -----------------------------------------------------------------------
 ;  PROCEDURE
@@ -180,7 +216,7 @@
 ; -----------------------------------------------------------------------------------
 ;  PROCEDURE (Internal)
 ;	Name		: _mp3dl2g
-;	Description	: Maps a local space to word space with its position.
+;	Description	: Maps a local space to world space with its position.
 ;
 ;	Parametres:-
 ;	rcx = transform
@@ -253,8 +289,8 @@
 
 			; rax containg the pointer to current dot in local space
 			; checking the current dot is empty
-			mov	rbx,	dword ptr [rax]		; rbx containg the pixel
-			cmp	rbx,	0			; checking 0 pixel
+			mov	ebx,	dword ptr [rax]		; rbx containg the pixel
+			cmp	ebx,	0			; checking 0 pixel
 			je	_MP3DL2G_MOVE_NEXT		; skipping the empty dot
 			mov	rbx,	rax
 			
@@ -486,40 +522,90 @@
 		ret
 	_trnspos	ENDP
 
-.data	
-	; size of spaces in 3 dimensions
-	DEFAULT_3D_SPACE_SIZE_X		equ	512
-	DEFAULT_3D_SPACE_SIZE_Y		equ	512
-	DEFAULT_3D_SPACE_SIZE_Z		equ	512
-	
-	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	128
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	128
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	128
-	
-	DEFAULT_3D_LOCAL_SPACE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y * DEFAULT_3D_LOCAL_SPACE_SIZE_Z)
-
-	DEFAULT_3D_SPACE_SIZE		equ	(DEFAULT_3D_SPACE_SIZE_X * DEFAULT_3D_SPACE_SIZE_Y * DEFAULT_3D_SPACE_SIZE_Z)
-
-
-	; Dot Strucutre
-	DOT_SIZE	equ		28
-	RAW_DOT_SIZE	equ		4
-	RAW_DOT_OFFSET	equ		24
-	DOT:
-		qword	0	; local_x_coordinates
-		qword	0	; local_y_coordinates
-		qword	0	; local_z_coordinates
-		RAW_DOT:
-			word	0	; pixel
-			word	0	; background and front color
-
-	; buffer to hold 3d space
-	DEFAULT_3D_SPACE:
-		qword	DEFAULT_3D_SPACE_SIZE		dup (0)
-	
-	; buffer to hold default 2d space
-	DEFAULT_3D_LOCAL_SPACE:
-		qword	DEFAULT_3D_LOCAL_SPACE_SIZE	dup (0)
+; -------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: initspacs
+;	Description	: Initializes Spaces
+;
+;	Parametres	: None.
+;
+;	Returns		: None.
+; -------------------------------------------------------------------------
+	initspacs	PROC
+		push	rbp
+		mov	rbp,	rsi
+		; allocating memory in heap
+		mov	rcx,	qword ptr [S_HEAP]
+		push	rcx
+		mov	rdx,	HEAP_ZERO_MEMORY
+		mov	r8,	(DEFAULT_3D_LOCAL_SPACE_SIZE* RAW_DOT_SIZE)
+		call	malloc
+		pop	rcx
+		; rax containg the first dot of local space
+		push	rax
+		mov	rdx,	HEAP_ZERO_MEMORY
+		mov	r8,	(DEFAULT_3D_SPACE_SIZE * RAW_DOT_SIZE)	
+		call	malloc
+		; rax containing the first dot of global space
+		push	rax
+		; filling array of spaces
+		; filling global space
+		; setting counters
+		push	rsi
+		push	rbx
+		xor	rsi,	rsi
+		mov	rbx,	rsi
+		mov	rax,	rsi
+		DURING_GLOBAL:
+			cmp	rsi,	DEFAULT_3D_SPACE_SIZE
+			je	DONE_GLOBAL
+			mov	rbx,	rsi
+			imul	rbx,	SIZEOF qword
+			; rbx containing the offset to current index in array
+			mov	rax,	rsi
+			imul	rax,	RAW_DOT_SIZE
+			; rax containing the offset to current raw dot
+			mov	rcx,	qword ptr [rsp + (SIZEOF qword * 2)]
+			; rax containing base of dots in memory of global space
+			; writing the dots address in array
+			add	rcx,	rax						; rax containing the address of the dot
+			mov	qword ptr [rbx + DEFAULT_3D_SPACE],	rcx
+			inc	rsi
+			jmp	DURING_GLOBAL	
+		DONE_GLOBAL:
+			pop	rbx
+			pop	rsi
+		; filling local space
+		; setting counters
+		push	rsi
+		push	rbx
+		xor	rsi,	rsi
+		mov	rbx,	rsi
+		mov	rax,	rsi
+		DURING_LOCAL:
+			cmp	rsi,	DEFAULT_3D_LOCAL_SPACE_SIZE
+			je	DONE_LOCAL
+			mov	rbx,	rsi
+			imul	rbx,	SIZEOF qword
+			; rbx containing the offset to current index in array
+			mov	rax,	rsi
+			imul	rax,	RAW_DOT_SIZE
+			; rax containing the offset to current raw dot
+			mov	rcx,	qword ptr [rsp + (SIZEOF qword * 3)]
+			; rax containing base of dots in memory of global space
+			; writing the dots address in array
+			add	rcx,	rax						; rax containing the address of the dot
+			mov	qword ptr [rbx + DEFAULT_3D_LOCAL_SPACE],	rcx
+			inc	rsi
+			jmp	DURING_LOCAL
+		DONE_LOCAL:
+			pop	rbx
+			pop	rsi
+		pop	rax
+		pop	rax
+		pop	rbp
+		ret
+	initspacs	ENDP
 
 ; vim:ft=masm
 			

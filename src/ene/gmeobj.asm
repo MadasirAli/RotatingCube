@@ -1,30 +1,3 @@
-INCLUDE		"3dspace.asm"
-
-.code
-	fillmesh	PROC
-		push	rbp
-		mov	rbp,	rsp
-
-		push	rdi
-		xor	rdi,	rdi
-		
-		DURING:
-			cmp	rdi,	DEFAULT_3D_MESH_DATA_COUNT
-			je	DONE
-
-			mov	rax,	rdi
-			imul	rax,	SIZEOF qword
-
-			; _________ allocate memory and fill the list with strcutures
-
-			inc	rdi
-		DONE:
-		pop	rdi
-
-		pop	rbp
-		ret
-	fillmesh	ENDP
-
 .data
 	; TRANSFORM
 	TRANSFORM_SIZE			equ	144
@@ -49,9 +22,52 @@ INCLUDE		"3dspace.asm"
 		qword	0	;	global_y_scale
 		qword	0	;	global_z_scale
 
-	DEFAULT_3D_SPACE_MESH_DATA:	
+	DEFAULT_3D_MESH_DATA_COUNT	equ	4
+	DEFAULT_3D_MESH_DATA:	
 		qword	DEFAULT_3D_MESH_DATA_COUNT dup(0)	; pointer to its 3D mesh data
 
-	DEFAULT_3D_MESH_DATA_COUNT	equ	256
+.code
+	fillmesh	PROC
+		push	rbp
+		mov	rbp,	rsp
+
+		call	_initmsh
+
+		pop	rbp
+		ret
+	fillmesh	ENDP
+	_initmsh	PROC
+		push	rbp
+		mov	rbp,	rsp
+		sub	rsp,	32
+		mov	rcx,	qword ptr [S_HEAP]
+		mov	rdx,	HEAP_ZERO_MEMORY
+		mov	r8,	(DOT_SIZE * DEFAULT_3D_MESH_DATA_COUNT)
+		call	malloc
+		add	rsp,	32
+		push	rax
+		push	rsi
+		push	rbx
+		xor	rsi,	rsi
+		DURING:
+			cmp	rsi,	DEFAULT_3D_MESH_DATA_COUNT
+			je 	DONE
+			mov	rax,	rsi
+			imul	rax,	SIZEOF qword
+			mov	rbx,	qword ptr [rsp + (SIZEOF qword * 3)]
+			mov	rcx,	rsi
+			imul	rcx,	DOT_SIZE
+			add	rbx,	rcx
+			mov	word ptr [rbx + RAW_DOT_OFFSET],	2588h			; filling the space with block
+			mov	qword ptr [rax + DEFAULT_3D_MESH_DATA],	rbx 
+			inc	rsi
+			jmp	DURING
+		DONE:
+		pop	rbx
+		pop	rsi
+		pop	rax
+		pop	rbp
+		ret
+	_initmsh	ENDP
 	
 ; vim:ft=masm	

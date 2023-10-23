@@ -12,16 +12,39 @@ HeapAlloc		PROTO
 GetProcessHeap		PROTO
 HeapCreate		PROTO
 HeapDestroy		PROTO
+HeapFree		PROTO
 
 .data
 	; Flags
 
 	HEAP_GENERATE_EXCEPTIONS	equ	4h
 	HEAP_NO_SERIALIZE		equ	1h
+
 	HEAP_ZERO_MEMORY		equ	8h
 
 	HEAP_CREATE_ENABLE_EXECUTE	equ	262144	
 .code
+; ------------------------------------------------------------------------------------
+;  PROCEDURE
+; 	Name		 : freeheap
+;	Description	 : Frees a allocated heap's block
+;
+;	Parametres:-
+;	rcx = hHeap,
+;	rdx = dwFlags
+;	r8  = lpMem
+;
+;	Returns: BOOL
+; ------------------------------------------------------------------------------------
+	freeheap	PROC
+		push	rbp
+		mov	rbp,	rsp
+		sub	rsp,	32
+		call	FreeHeap
+		add	rsi,	32
+		pop	rbp
+		ret
+	freeheap	ENDP
 ; ------------------------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: destheap
