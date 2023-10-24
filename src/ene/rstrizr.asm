@@ -97,7 +97,8 @@
 		; saving non volatile registers
 		push	rsi	; x element
 		push	rdi	; y element
-		push	rbx
+		push	rbx	; next used as temp
+		push	r9	; next used as temp
 		
 		; making a plane keeping the depth (z) constant
 		; setting counters
@@ -136,10 +137,25 @@
 			xor	r10,	r10		; containg current delta depth	
 			DURING_DEPTH:
 				; if max depth reached
-				cmp	r8,	rbx
+				cmp	r10,	rbx
 				je	_CON3D22D_EMPTY_DEPTH
 				; getting dot at current depth
+				push	rcx
+				push	rdx
+				push	r8
+				push	r9
+				push	r10
+				push	r11
+				mov	r8,	r13					; starting depth
+				add	r8,	r10					; delta depth
+				mov	r9,	qword ptr [rsp + (SIZEOF qword * 9)]	; space
 				call	get3dd
+				pop	r11
+				pop	r10
+				pop	r9
+				pop	r8
+				pop	rdx
+				pop	rcx
 				; checking if we hit a surface
 				cmp	word ptr [rax],	0  
 				; if we did not hit surface
@@ -153,11 +169,11 @@
 			; rax holding the pointer to current surface (raw) dot
 			; cliping the dot on surface
 			_CON3D22D_EMPTY_DEPTH:	
-				mov	r9,	SIZEOF qword	; using r9 as signel for empty write
+				mov	r9,	-1	; using r9 as signel for empty write
 			_CON3D22D_OBTAIN_DOT:
 				push	r15	
 				xor	r15,	r15	; going to be used as temp holder for pixel
-	
+				push	r14	
 				xor	r14,	r14 	; going to use as temp holder for surface's dot
 				mov	r14,	rax	; rax holding current surface
 
@@ -165,10 +181,16 @@
 				push	rcx
 				push	rdx
 				push	r8
+				push	r9
+				push	r10
+				push	r11
 				mov	rcx,	rsi		; x coord
-				mov	rdi,	rdi		; y coord
+				mov	rdx,	rdi		; y coord
 				mov	r8,	_2D_PLANE	; space
 				call	get2dd
+				pop	r11
+				pop	r10
+				pop	r9
 				pop	r8
 				pop	rdx
 				pop	rcx
@@ -180,10 +202,14 @@
 				; obtaining pixel from surface's dot
 				mov	r15d,	dword ptr [r14]	
 				; checking empty write
-				cmp	r9,	SIZEOF qword		
+				cmp	r9,	-1
 				; writing to surface's pixel
-				xor	rax,	rax			; rax = 0
-				cmove	r15d,	eax			; null will be writtenon signel
+				push	rax
+				pushf
+				xor	rax,	rax
+				popf
+				cmove	r15d,	eax			; null will be written on signel
+				pop	rax
 				mov	dword ptr [rax],	r15d
 
 				pop	r14
@@ -207,6 +233,7 @@
 		pop	r13
 		pop	r12
 		pop	r11
+		pop	r9
 		pop 	rbx
 		pop	rdi	
 		pop	rsi

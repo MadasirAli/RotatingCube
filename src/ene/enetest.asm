@@ -36,8 +36,10 @@ INCLUDE		rstrizr.asm
 		mov	r9,	TRANSFORM			; transform
 		push		DEFAULT_3D_LOCAL_SPACE_SIZE	; size of local space
 		call	_initdrw
+		; cleaning stack param
+		pop	rcx
 		; 2- Rasterize
-		mov	rcx,	1
+		mov	rcx,	0
 		mov	rdx,	rcx
 		mov	r8,	rcx
 		mov	r9,	DEFAULT_3D_LOCAL_SPACE		; local space
