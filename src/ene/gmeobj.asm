@@ -54,7 +54,7 @@
 			je 	DONE
 			mov	rax,	rsi
 			imul	rax,	SIZEOF qword
-			mov	rbx,	qword ptr [rsp + (SIZEOF qword * 3)]
+			mov	rbx,	qword ptr [rsp + (SIZEOF qword * 2)]
 			mov	rcx,	rsi
 			imul	rcx,	DOT_SIZE
 			add	rbx,	rcx

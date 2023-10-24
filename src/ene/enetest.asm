@@ -30,7 +30,7 @@ INCLUDE		rstrizr.asm
 		call	initplne
 		call	initspacs
 		call	fillmesh
-		mov	rcx,	DEFAULT_3D_MESH_DATA_COUNT	; mesh data
+		mov	rcx,	DEFAULT_3D_MESH_DATA		; mesh data
 		mov	rdx,	DEFAULT_3D_LOCAL_SPACE		; local space
 		mov	r8,	DEFAULT_3D_MESH_DATA_COUNT	; mesh data length
 		mov	r9,	TRANSFORM			; transform

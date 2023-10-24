@@ -395,9 +395,13 @@
 		; saving volatile registers (are currently holding parametres for this procedure)	
 		push	rcx
 		push	rdx
+		push	r8
+		push	r9
 		mov	rcx,	rdx		; pointer to space
 		mov	rdx,	r15		; length of space
 		call	_clenspce	
+		pop	r9
+		pop	r8
 		pop	rdx
 		pop	rcx
 
@@ -417,9 +421,9 @@
 			je	DONE
 			mov	r14,	qword ptr [rbx]		; r14 holding the pointer to current dot
 			; reading current dot coordinates
-			mov	r10,	qword ptr [r14 + TRANSFORM_GLOBALS_OFFSET]		; dot's x coord
-			mov	r11,	qword ptr [r14 + TRANSFORM_GLOBALS_OFFSET + 8] 		; dot's y coord
-			mov	r12,	qword ptr [r14 + TRANSFORM_GLOBALS_OFFSET + 16]		; dot's z coord
+			mov	r10,	qword ptr [r14]		; dot's x coord
+			mov	r11,	qword ptr [r14] 	; dot's y coord
+			mov	r12,	qword ptr [r14]		; dot's z coord
 			; getting coordinate in linear space
 			push	rcx
 			push	rdx
@@ -429,7 +433,7 @@
 			push	r11
 			push	r14
 			push	r15
-			mov	rdx,	r9	; pointer to local space
+			mov	r9,	rdx	; pointer to local space
 			mov	rcx,	r10	; x coord
 			mov	rdx,	r11	; y coord
 			mov	r8,	r12	; z coord
@@ -450,6 +454,7 @@
 			mov	dword ptr [rax], 	r13d	; writing the mesh pixel and color at local space	
 			; adding offset to point to next pointer in mesh data
 			add	rbx,	SIZEOF qword
+			inc	rsi
 			; contineuing loop
 			jmp	DURING
 		DONE:
