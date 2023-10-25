@@ -9,9 +9,10 @@
 	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	4
 	
 	DEFAULT_3D_LOCAL_SPACE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y * DEFAULT_3D_LOCAL_SPACE_SIZE_Z)
+	DEFAULT_3D_LOCAL_PLANE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y)
 
 	DEFAULT_3D_SPACE_SIZE		equ	(DEFAULT_3D_SPACE_SIZE_X * DEFAULT_3D_SPACE_SIZE_Y * DEFAULT_3D_SPACE_SIZE_Z)
-
+	DEFAULT_3D_PLANE_SIZE		equ	(DEFAULT_3D_SPACE_SIZE_X * DEFAULT_3D_SPACE_SIZE_Y)
 
 	; Dot Strucutre
 	DOT_SIZE	equ		28
@@ -52,23 +53,19 @@
 		push	rbp
 		; creating new stack frame
 		mov	rbp,	rsp
-		; checking for 0 coords
-		xor 	rax,	rax
-		mov	r9,	1
-		cmp	rcx, 	rax
-		cmove	rcx,	r9
-		cmp	rdx,	rax
-		cmove	rdx,	r9
-
-		; getting position in linear space
-		imul	rcx, 	rdx
+		
+		; getting in linear space
+		; Y * number of columns in 1 row
+		; X will be column in that row
+		imul	rdx,	_2D_PLANE_SIZE_X
+		; now adding X
+		add	rdx,	rcx
 		
 		; rescaling point by the size of a pointer (QWORD)
-		imul	rcx,	SIZEOF qword
+		imul	rdx,	SIZEOF qword
 
 		; obtaining the dot pointer
-		mov	rax, 	qword ptr [r8 + rcx]
-		; rax containing the pointer to current dot
+		mov	rax, 	qword ptr [r8 + rdx]
 		
 		; restoring stack
 		pop	rbp
@@ -104,28 +101,17 @@
 		push	rbp
 		mov	rbp,	rsp
 
-		; saving non-volatile registers
-		push	r12
-		
-		; getting dot offset in linear from 3d coordinates
-		mov	r10,	1
-		mov	r11,	1
-		mov	r12,	1
-		cmp	rcx, 	0
-		cmovne	r10,	rcx
-		cmp	rdx,	0
-		cmovne	r11,	rdx
-		cmp	r8,	0
-		cmovne	r12,	r8
-		imul	r10,	r11
-		imul	r10,	r12
-		; rescaling to per dot size
-		imul	r10,	SIZEOF qword
-		; obtaining dot
-		mov	rax,	qword ptr [r9 + r10]
+		; Z * number of planes in space
+		; Y * number of columns
+		imul	r8,	DEFAULT_3D_LOCAL_PLANE_SIZE
+		imul	rdx,	DEFAULT_3D_LOCAL_SPACE_SIZE_X
+		add	rcx,	rdx			; adding row offset
+		add	rcx,	r8			; adding plane (depth) offset
 
-		; restoring non volatile registers
-		pop	r12
+		; rescaling to per dot size
+		imul	rcx,	SIZEOF qword
+		; obtaining dot
+		mov	rax,	qword ptr [r9 + rcx]
 
 		; cleaning up stack
 		pop	rbp
@@ -152,7 +138,7 @@
 		; setting up stack
 		push	rbp
 		mov	rbp,	rsp
-
+	
 		; retriving stack parametres
 		mov	r10,	qword ptr [rsp + 16]	; size of mesh data
 		mov	r11,	qword ptr [rsp + 24]	; size of local space
@@ -421,9 +407,9 @@
 			je	DONE
 			mov	r14,	qword ptr [rbx]		; r14 holding the pointer to current dot
 			; reading current dot coordinates
-			mov	r10,	qword ptr [r14]		; dot's x coord
-			mov	r11,	qword ptr [r14] 	; dot's y coord
-			mov	r12,	qword ptr [r14]		; dot's z coord
+			mov	r10,	qword ptr [r14]				; dot's x coord
+			mov	r11,	qword ptr [r14 + (SIZEOF qword * 1)] 	; dot's y coord
+			mov	r12,	qword ptr [r14 + (SIZEOF qword * 2)]	; dot's z coord
 			; getting coordinate in linear space
 			push	rcx
 			push	rdx

@@ -18,7 +18,14 @@ INCLUDE		rstrizr.asm
 		mov	rbp,	rsp
 
 		; saving non volatile registers
+		push	rax
 		push	rbx
+		push	rcx
+		push	rdx
+		push	r8
+		push	r9
+		push	r10
+		push	r11
 		push	r12
 		push	r13
 		push	r14
@@ -47,7 +54,7 @@ INCLUDE		rstrizr.asm
 		; 3- Fill Buffer
 		mov	rcx,	_2D_PLANE		; plane
 		mov	rdx,	_2D_PLANE_SIZE		; plane size
-		mov	r9,	DEFAULT_PIXEL_BUFFER	; pixel buffer	
+		mov	r8,	DEFAULT_PIXEL_BUFFER	; pixel buffer	
 		call	plne2pix
 
 		; restoring non volatile registers
@@ -57,14 +64,18 @@ INCLUDE		rstrizr.asm
 		pop	r14
 		pop	r13
 		pop	r12
+		pop	r11
+		pop	r10
+		pop	r9
+		pop	r8
+		pop	rdx
+		pop	rcx
 		pop	rbx
+		pop	rax
 		
 		; restoring stack
 		pop	rbp
 		; returning to caller
 		ret
 	enetst	ENDP
-
-.data
-
 ; vim:ft=masm

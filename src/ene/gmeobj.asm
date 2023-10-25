@@ -58,6 +58,8 @@
 			mov	rcx,	rsi
 			imul	rcx,	DOT_SIZE
 			add	rbx,	rcx
+			mov	qword ptr [rbx], rsi		; x position of current mesh data
+			mov	qword ptr [rbx + 8], rsi	; y position of current mesh data
 			mov	word ptr [rbx + RAW_DOT_OFFSET],	2588h			; filling the space with block
 			mov	qword ptr [rax + DEFAULT_3D_MESH_DATA],	rbx 
 			inc	rsi

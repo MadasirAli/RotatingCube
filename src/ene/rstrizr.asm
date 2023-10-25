@@ -7,13 +7,13 @@
 	MAX_DEPTH			equ	4
 	
 	_2D_PLANE_SIZE			equ	(_2D_PLANE_SIZE_X * _2D_PLANE_SIZE_Y)
-	DEFAULT_PIXEL_BUFFER_SIZE	equ	_2D_PLANE_SIZE
+	DEFAULT_PIXEL_BUFFER_SIZE	equ	_2D_PLANE_SIZE + _2D_PLANE_SIZE_X
 
 	_2D_PLANE:
-		qword	_2D_PLANE_SIZE	dup (0)
+		qword	_2D_PLANE_SIZE			dup (0)
 
 	DEFAULT_PIXEL_BUFFER:
-		word 	_2D_PLANE_SIZE	dup (0)
+		word 	DEFAULT_PIXEL_BUFFER_SIZE	dup (0)
 
 .code
 ; -----------------------------------------------------------------------
@@ -45,24 +45,25 @@
 		mov	rax,	rdi
 		xor	r10,	r10	; will contain the current column count
 		DURING:
-			cmp	rsi,	(_2D_PLANE_SIZE_X * _2D_PLANE_SIZE_Y)
+			cmp	rsi,	_2D_PLANE_SIZE
 			je	DONE
 
 			mov	r9,	SIZEOF qword
 			imul	r9, 	rsi				; r9 giving offset
-			mov	rbx,	qword ptr [_2D_PLANE + r9]	; containg the pointer to raw dot
+			mov	rbx,	qword ptr [rcx + r9]		; containg the pointer to raw dot
 
 			mov	ax,	word ptr [rbx]			; the pure pixel
-			mov	word ptr [rcx + rdi], ax		; fitting in buffer
+			mov	word ptr [r8  + rdi], ax		; fitting in buffer
 
 			inc	rsi
 			add	rdi,	SIZEOF	word	
-	
+
+			inc	r10	
 			cmp	r10,	_2D_PLANE_SIZE_X		; checking end row
 			jne	DURING
 			_PLNE2PIX_ADD_BREAK:
 				xor	r10,	r10			; setting the column counter to 0, as next row will start
-				mov	word ptr [rcx + rdi],	10	; adding line break, to start new line
+				mov	word ptr [r8 + rdi],	0Ah	; adding line break, to start new line
 				add	rdi,	SIZEOF word
 				jmp	DURING
 			

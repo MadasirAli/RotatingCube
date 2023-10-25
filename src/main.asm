@@ -75,13 +75,13 @@ INCLUDE		ene/enetest.asm
 		mov	qword ptr [stdHnd], 	rax
 		; ______________---- TESTING CONSOLE ----_____________
 		; Writing buffer full of wide characters
-		mov	rcx,	qword ptr [stdHnd]	; handle to console
-		mov	rdx,	bffr			; buffer of wide characters
-		mov	r8,	20			; number of chracters to write
-		mov	r9,	tmp			; current numbers of characters written
-		push	0				; reserved
+		mov	rcx,	qword ptr [stdHnd]		; handle to console
+		mov	rdx,	DEFAULT_PIXEL_BUFFER		; buffer of wide characters
+		mov	r8,	DEFAULT_PIXEL_BUFFER_SIZE 	; number of chracters to write
+		mov	r9,	tmp				; current numbers of characters written
+		push	0					; reserved
 		call	wrteconw	
-		add	rsp,	8			; cleaning stack parametre
+		add	rsp,	8				; cleaning stack parametre
 		; ____________________________________________________
 
 		; calling the WinMain Entry Point
