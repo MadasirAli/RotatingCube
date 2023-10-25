@@ -30,4 +30,5 @@
 		; returning to caller
 		ret
 	strlen ENDP
-
+
+; vim:set ft=masm

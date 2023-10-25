@@ -124,12 +124,25 @@ HeapFree		PROTO
 		push	rbp
 		; creating new stack frame
 		mov	rbp,	rsp
+
+		push	rbx
+		
+		mov	rbx,	rsp
+		; aligning stack at 16
+		and	rsp,	-16
+
 		; adding shadow space
 		sub	rsp,	32
 		; calling win32
 		call	HeapAlloc
 		; cleaning shadow space
 		add	rsp,	32
+		
+		; dealigning stack
+		mov	rsp,	rbx
+
+		pop	rbx
+		
 		; restoring stack
 		pop	rbp
 		; returning to caller

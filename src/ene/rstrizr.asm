@@ -1,10 +1,10 @@
 .data
 
 	; size of the screen place
-	_2D_PLANE_SIZE_X		equ	4
-	_2D_PLANE_SIZE_Y		equ	4
+	_2D_PLANE_SIZE_X		equ	60
+	_2D_PLANE_SIZE_Y		equ	60
 
-	MAX_DEPTH			equ	4
+	MAX_DEPTH			equ	60
 	
 	_2D_PLANE_SIZE			equ	(_2D_PLANE_SIZE_X * _2D_PLANE_SIZE_Y)
 	DEFAULT_PIXEL_BUFFER_SIZE	equ	_2D_PLANE_SIZE + _2D_PLANE_SIZE_X
@@ -248,7 +248,7 @@
 		push	rbp
 		mov	rbp,	rsp
 		mov	rcx,	qword ptr [S_HEAP]
-		mov	rdx,	HEAP_ZERO_MEMORY
+		mov	rdx,	0Ch
 		mov	r8,	(_2D_PLANE_SIZE * RAW_DOT_SIZE)
 		call	malloc
 		push	rax

@@ -27,7 +27,7 @@ INCLUDE		ene/enetest.asm
 		qword	0
 	tmp:
 		qword	0
-					; MB ; kb     ; bytes
+		
 	SECONDARY_HEAP_SIZE	equ	10 * (1024) * (1024)
 	; holding pointer to secondary heap
 	S_HEAP:
@@ -55,7 +55,7 @@ INCLUDE		ene/enetest.asm
 		mov	r11,	rax
 
 		; creating secondary heap, committing memory
-		mov	rcx,	0
+		mov	rcx,	4h
 		mov	rdx,	SECONDARY_HEAP_SIZE
 		mov	r8,	(SECONDARY_HEAP_SIZE * 2)	
 		call	heapcrte

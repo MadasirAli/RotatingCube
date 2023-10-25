@@ -1,12 +1,12 @@
 .data	
 	; size of spaces in 3 dimensions
-	DEFAULT_3D_SPACE_SIZE_X		equ	8
-	DEFAULT_3D_SPACE_SIZE_Y		equ	8
-	DEFAULT_3D_SPACE_SIZE_Z		equ	8
+	DEFAULT_3D_SPACE_SIZE_X		equ	60
+	DEFAULT_3D_SPACE_SIZE_Y		equ	60
+	DEFAULT_3D_SPACE_SIZE_Z		equ	60
 	
-	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	4
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	4
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	4
+	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	60
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	60
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	60
 	
 	DEFAULT_3D_LOCAL_SPACE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y * DEFAULT_3D_LOCAL_SPACE_SIZE_Z)
 	DEFAULT_3D_LOCAL_PLANE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y)
@@ -524,17 +524,17 @@
 ; -------------------------------------------------------------------------
 	initspacs	PROC
 		push	rbp
-		mov	rbp,	rsi
+		mov	rbp,	rsp
 		; allocating memory in heap
 		mov	rcx,	qword ptr [S_HEAP]
 		push	rcx
-		mov	rdx,	HEAP_ZERO_MEMORY
-		mov	r8,	(DEFAULT_3D_LOCAL_SPACE_SIZE* RAW_DOT_SIZE)
+		mov	rdx,	0Ch
+		mov	r8,	(DEFAULT_3D_LOCAL_SPACE_SIZE * RAW_DOT_SIZE)
 		call	malloc
 		pop	rcx
 		; rax containg the first dot of local space
 		push	rax
-		mov	rdx,	HEAP_ZERO_MEMORY
+		mov	rdx,	0Ch
 		mov	r8,	(DEFAULT_3D_SPACE_SIZE * RAW_DOT_SIZE)	
 		call	malloc
 		; rax containing the first dot of global space
@@ -594,6 +594,7 @@
 			pop	rsi
 		pop	rax
 		pop	rax
+
 		pop	rbp
 		ret
 	initspacs	ENDP

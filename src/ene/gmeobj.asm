@@ -22,7 +22,7 @@
 		qword	0	;	global_y_scale
 		qword	0	;	global_z_scale
 
-	DEFAULT_3D_MESH_DATA_COUNT	equ	4
+	DEFAULT_3D_MESH_DATA_COUNT	equ	60
 	DEFAULT_3D_MESH_DATA:	
 		qword	DEFAULT_3D_MESH_DATA_COUNT dup(0)	; pointer to its 3D mesh data
 
@@ -41,7 +41,7 @@
 		mov	rbp,	rsp
 		sub	rsp,	32
 		mov	rcx,	qword ptr [S_HEAP]
-		mov	rdx,	HEAP_ZERO_MEMORY
+		mov	rdx,	0Ch
 		mov	r8,	(DOT_SIZE * DEFAULT_3D_MESH_DATA_COUNT)
 		call	malloc
 		add	rsp,	32
@@ -60,6 +60,7 @@
 			add	rbx,	rcx
 			mov	qword ptr [rbx], rsi		; x position of current mesh data
 			mov	qword ptr [rbx + 8], rsi	; y position of current mesh data
+			mov	qword ptr [rbx + 16], rsi	; z position of current mesh data
 			mov	word ptr [rbx + RAW_DOT_OFFSET],	2588h			; filling the space with block
 			mov	qword ptr [rax + DEFAULT_3D_MESH_DATA],	rbx 
 			inc	rsi
