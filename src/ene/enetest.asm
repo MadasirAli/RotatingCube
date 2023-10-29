@@ -2,6 +2,11 @@ INCLUDE 	3dspace.asm
 INCLUDE		gmeobj.asm
 INCLUDE		rstrizr.asm
 
+.data
+	SLEEP_TIME	equ	1		; ms
+	PER_FRAME_ROT_CHANGE:
+		qword	1.0
+
 .code
 ; ---------------------------------------------------------------------------------------
 ;  PROCEDURE
@@ -33,10 +38,26 @@ INCLUDE		rstrizr.asm
 		push	rsi
 		push	rdi
 
-		; 1- Initial Draw
+		; initializing spaces
 		call	initplne
 		call	initspacs
 		call	fillmesh
+
+		DURING:
+		; adding angle
+		mov	rax,	qword ptr [PER_FRAME_ROT_CHANGE]
+		push	rax
+		mov	rax,	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)]	; z rot
+		push	rax
+		fld	qword ptr [rsp]
+		fld	qword ptr [rsp + SIZEOF qword]
+		faddp
+		fstp	qword ptr [rsp]
+		pop	rax
+		mov	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)], rax
+		pop	rax
+
+		; 1- Initial Draw
 		mov	rcx,	DEFAULT_3D_MESH_DATA		; mesh data
 		mov	rdx,	DEFAULT_3D_LOCAL_SPACE		; local space
 		mov	r8,	DEFAULT_3D_MESH_DATA_COUNT	; mesh data length
@@ -57,6 +78,36 @@ INCLUDE		rstrizr.asm
 		mov	r8,	DEFAULT_PIXEL_BUFFER	; pixel buffer	
 		call	plne2pix
 
+		;4- Render
+		; setting cursor position to start
+		mov	rcx,	qword ptr [stdHnd]
+		xor	rdx,	rdx	
+		call	stcrsrps
+
+; --------
+		mov	rax,	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)]
+		push	rax
+		fld	qword ptr [rsp]
+		fistp	qword ptr [rsp]
+		pop	rax
+		add	rax,	30
+	;	mov	qword ptr [DEFAULT_PIXEL_BUFFER],	rax
+; --------
+		; Writing buffer full of wide characters
+		mov	rcx,	qword ptr [stdHnd]		; handle to console
+		mov	rdx,	DEFAULT_PIXEL_BUFFER		; buffer of wide characters
+		mov	r8,	DEFAULT_PIXEL_BUFFER_SIZE 	; number of chracters to write
+		mov	r9,	tmp				; current numbers of characters written
+		push	0					; reserved
+		call	wrteconw	
+		add	rsp,	8				; cleaning stack parametre
+
+		; sleeping
+		mov	rcx,	SLEEP_TIME
+		call	slp
+		
+		jmp	DURING
+		
 		; restoring non volatile registers
 		pop	rdi
 		pop	rsi
@@ -72,7 +123,6 @@ INCLUDE		rstrizr.asm
 		pop	rcx
 		pop	rbx
 		pop	rax
-		
 		; restoring stack
 		pop	rbp
 		; returning to caller

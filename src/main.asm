@@ -13,6 +13,8 @@ INCLUDE		io/io.asm
 INCLUDE		io/input.asm
 INCLUDE		utils/memutils.asm
 INCLUDE		ene/enetest.asm
+INCLUDE		maths/math.asm
+INCLUDE		diagnsts/time.asm
 
 ; default data segment
 .data
@@ -27,6 +29,10 @@ INCLUDE		ene/enetest.asm
 		qword	0
 	tmp:
 		qword	0
+	angle:
+		qword 45.0
+	_10:
+		qword 10.0
 		
 	SECONDARY_HEAP_SIZE	equ	10 * (1024) * (1024)
 	; holding pointer to secondary heap
@@ -60,10 +66,6 @@ INCLUDE		ene/enetest.asm
 		mov	r8,	(SECONDARY_HEAP_SIZE * 2)	
 		call	heapcrte
 		mov	qword ptr [S_HEAP],	rax	; saving pointer to the newly created heap (kernel) object
-
-		; __________ TEST ___________
-		call	enetst	
-		; ___________________________
 		
 		; creating a console
 		call	alcon
@@ -74,14 +76,7 @@ INCLUDE		ene/enetest.asm
 		call	getstdh
 		mov	qword ptr [stdHnd], 	rax
 		; ______________---- TESTING CONSOLE ----_____________
-		; Writing buffer full of wide characters
-		mov	rcx,	qword ptr [stdHnd]		; handle to console
-		mov	rdx,	DEFAULT_PIXEL_BUFFER		; buffer of wide characters
-		mov	r8,	DEFAULT_PIXEL_BUFFER_SIZE 	; number of chracters to write
-		mov	r9,	tmp				; current numbers of characters written
-		push	0					; reserved
-		call	wrteconw	
-		add	rsp,	8				; cleaning stack parametre
+		call	enetst
 		; ____________________________________________________
 
 		; calling the WinMain Entry Point

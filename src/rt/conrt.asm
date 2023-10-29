@@ -1,11 +1,12 @@
 INCLUDELIB	kernel32.lib
 
-SetConsoleTitleA	PROTO
-GetStdHandle		PROTO
-AllocConsole		PROTO
-AttachConsole		PROTO
-WriteConsoleA		PROTO
-WriteConsoleW		PROTO
+SetConsoleTitleA		PROTO
+GetStdHandle			PROTO
+AllocConsole			PROTO
+AttachConsole			PROTO
+WriteConsoleA			PROTO
+WriteConsoleW			PROTO
+SetConsoleCursorPosition	PROTO
 
 .data
 	; CHAR_INFO
@@ -25,6 +26,24 @@ WriteConsoleW		PROTO
 	ATTACH_PARENT_PROCESS	equ	-1
 
 .code
+; -------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: srcrsrps
+;	Description	: Sets the Cursor Position to the specified coords.
+;
+;	Parametres	:-
+;				rcx = handle to std out
+;				rdx = double word for coords, upper x, lower y
+; -------------------------------------------------------------------------
+	stcrsrps	PROC
+		push	rbp
+		mov	rbp,	rsp
+		sub	rsp,	32
+		call	SetConsoleCursorPosition
+		mov	rsp,	rbp
+		pop	rbp
+		ret
+	stcrsrps	ENDP
 
 ; -------------------------------------------------------------------------
 ;  PROCEDURE

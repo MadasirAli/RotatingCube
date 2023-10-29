@@ -1,12 +1,12 @@
 .data	
 	; size of spaces in 3 dimensions
-	DEFAULT_3D_SPACE_SIZE_X		equ	60
-	DEFAULT_3D_SPACE_SIZE_Y		equ	60
-	DEFAULT_3D_SPACE_SIZE_Z		equ	60
+	DEFAULT_3D_SPACE_SIZE_X		equ	32
+	DEFAULT_3D_SPACE_SIZE_Y		equ	20
+	DEFAULT_3D_SPACE_SIZE_Z		equ	32
 	
-	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	60
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	60
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	60
+	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	32
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	20
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	32
 	
 	DEFAULT_3D_LOCAL_SPACE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y * DEFAULT_3D_LOCAL_SPACE_SIZE_Z)
 	DEFAULT_3D_LOCAL_PLANE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y)
@@ -18,6 +18,15 @@
 	DOT_SIZE	equ		28
 	RAW_DOT_SIZE	equ		4
 	RAW_DOT_OFFSET	equ		24
+
+	TEST_ROTATION:
+		qword	0.0	; x
+		qword 	0.0	; y
+		qword 	90.0	; z
+	TEST_ROTATION_BUFFER:
+		qword 	0	; x
+		qword 	0 	; y
+		qword 	0 	; z
 
 	DOT:
 		qword	0	; local_x_coordinates
@@ -406,10 +415,22 @@
 			cmp	rsi,	r8
 			je	DONE
 			mov	r14,	qword ptr [rbx]		; r14 holding the pointer to current dot
+;---------------------------------------------------------------------------------------------------------
+			push	rax
+			push	rcx
+			mov	rcx,	r14
+			call	_transrot
+			pop	rcx
+			pop	rax
+;---------------------------------------------------------------------------------------------------------
 			; reading current dot coordinates
 			mov	r10,	qword ptr [r14]				; dot's x coord
-			mov	r11,	qword ptr [r14 + (SIZEOF qword * 1)] 	; dot's y coord
+			mov	r11,	qword ptr [r14 + SIZEOF qword] 		; dot's y coord
 			mov	r12,	qword ptr [r14 + (SIZEOF qword * 2)]	; dot's z coord
+			; adding rotational transformations
+			add	r10,	qword ptr [TEST_ROTATION_BUFFER]		
+			add	r11,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword)]
+			;add	r12,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)]
 			; getting coordinate in linear space
 			push	rcx
 			push	rdx
@@ -598,6 +619,91 @@
 		pop	rbp
 		ret
 	initspacs	ENDP
+	
+	_transrot	PROC
+		push	rbp
+		push	rbx
+		mov	rbp,	rsp
+		; currently only transforming roation along z
+		; reading coordinates
+		mov	rax,	qword ptr [rcx + (SIZEOF qword * 2)]	; z coord
+		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)], rax
+
+		mov	rax,	qword ptr [rcx]				; x coord
+		push	rax
+		mov	rax,	qword ptr [rcx + (SIZEOF qword)]	; y coord
+		push	rax
+		
+		; resolving its new x position
+		; getting its position from its centre
+		mov	rbx,	GAMEOBJECT_SIZE_X
+		shr	rbx,	1					; centre coord
+		mov	rax,	qword ptr [rsp + (SIZEOF qword)]	; x coord
+		sub	rax,	rbx					; position from centre
+		push	rax
+		
+		; getting cos0 => cos(ROTATION_Z)
+		push	rcx
+		mov	rcx,	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)]	; z rotation
+		call	cos
+		pop	rcx
+		push	rax
+		
+		; getting Xcos0
+		fld	qword ptr [rsp]				; cos0
+		fild	qword ptr [rsp + (SIZEOF qword)]	; X
+		fmulp
+		push	0
+		fistp	qword ptr [rsp]
+
+		;  filling new x position
+		mov	rbx, 	GAMEOBJECT_SIZE_X
+		shr	rbx,	1
+		mov	rax,	qword ptr [rsp]
+		;dec	rax					; some cos error thing	
+		add	rax,	rbx				; centre + new x to get from right origin
+		;cmp	rax,	-1
+		;jne	_TRANSROT_ADD_X
+		;xor	rax,	rax
+		;_TRANSROT_ADD_X:
+		mov	qword ptr [TEST_ROTATION_BUFFER],	rax
+		
+		; resolving its new y position
+		; getting its position from centre
+		mov	rbx,	GAMEOBJECT_SIZE_Y
+		shr	rbx,	1					; centre coord
+		mov	rax,	qword ptr [rsp + (SIZEOF qword * 3)]    ; y coord
+		sub	rax,	rbx					; position from centre
+		push	rax
+		
+		; getting sin0 => sin(ROTATION_Z)
+		push	rcx
+		mov	rcx, 	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)]	; z rotation
+		call	sin
+		pop	rcx
+		push	rax
+
+		; getting Ysin0
+		fld	qword ptr [rsp]				; sin0
+		fild	qword ptr [rsp + (SIZEOF qword)]	; Y
+		fmulp
+		push	0
+		fistp	qword ptr [rsp]
+
+		; filling new y position
+		mov	rbx,	GAMEOBJECT_SIZE_Y
+		shr	rbx,	1
+		mov	rax,	qword ptr [rsp]
+		add	rax,	rbx				; centre + y to get new position from top origin
+		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)],	rax
+
+		mov	rax,	TEST_ROTATION_BUFFER
+
+		mov	rsp,	rbp
+		pop	rbx
+		pop	rbp
+		ret	
+	_transrot	ENDP
 
 ; vim:ft=masm
 			
