@@ -22,15 +22,15 @@
 		qword	0	;	global_y_scale
 		qword	0	;	global_z_scale
 
-	GAMEOBJECT_SIZE_X		equ	10
-	GAMEOBJECT_SIZE_Y		equ	10
-	GAMEOBJECT_SIZE_Z		equ	10
+	GAMEOBJECT_SIZE_X		equ	60
+	GAMEOBJECT_SIZE_Y		equ	60
+	GAMEOBJECT_SIZE_Z		equ	60
 
-	GAMEOBJECT_POSITION_X		equ	5
-	GAMEOBJECT_POSITION_Y		equ	5
-	GAMEOBJECT_POSITION_Z		equ	5
+	GAMEOBJECT_POSITION_X		equ	30
+	GAMEOBJECT_POSITION_Y		equ	30
+	GAMEOBJECT_POSITION_Z		equ	30
 
-	DEFAULT_3D_MESH_DATA_COUNT	equ	10
+	DEFAULT_3D_MESH_DATA_COUNT	equ	GAMEOBJECT_SIZE_X
 	DEFAULT_3D_MESH_DATA:	
 		qword	DEFAULT_3D_MESH_DATA_COUNT dup(0)	; pointer to its 3D mesh data
 
@@ -75,8 +75,8 @@
 			add	rbx,	rcx
 			
 			mov	qword ptr [rbx],	rsi		; x position of current mesh data
-			mov	qword ptr [rbx + 8],	rsi		; y position of current mesh data
-			mov	qword ptr [rbx + 16], 	rsi		; z position of current mesh data
+			mov	qword ptr [rbx + 8],	r9		; y position of current mesh data
+			mov	qword ptr [rbx + 16], 	r10		; z position of current mesh data
 
 			mov	word ptr [rbx + RAW_DOT_OFFSET],	2588h			; filling the space with block
 			mov	qword ptr [rax + DEFAULT_3D_MESH_DATA],	rbx 

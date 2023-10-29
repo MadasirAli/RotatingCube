@@ -1,10 +1,10 @@
 .data
 
 	; size of the screen place
-	_2D_PLANE_SIZE_X		equ	32
-	_2D_PLANE_SIZE_Y		equ	20
+	_2D_PLANE_SIZE_X		equ	60
+	_2D_PLANE_SIZE_Y		equ	60
 
-	MAX_DEPTH			equ	32
+	MAX_DEPTH			equ	60
 	
 	_2D_PLANE_SIZE			equ	(_2D_PLANE_SIZE_X * _2D_PLANE_SIZE_Y)
 	DEFAULT_PIXEL_BUFFER_SIZE	equ	_2D_PLANE_SIZE + _2D_PLANE_SIZE_X

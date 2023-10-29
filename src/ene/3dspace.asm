@@ -1,12 +1,12 @@
 .data	
 	; size of spaces in 3 dimensions
-	DEFAULT_3D_SPACE_SIZE_X		equ	32
-	DEFAULT_3D_SPACE_SIZE_Y		equ	20
-	DEFAULT_3D_SPACE_SIZE_Z		equ	32
-	
-	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	32
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	20
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	32
+	DEFAULT_3D_SPACE_SIZE_X		equ	60
+	DEFAULT_3D_SPACE_SIZE_Y		equ	60
+	DEFAULT_3D_SPACE_SIZE_Z		equ	60
+
+	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	60
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	60
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	60
 	
 	DEFAULT_3D_LOCAL_SPACE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y * DEFAULT_3D_LOCAL_SPACE_SIZE_Z)
 	DEFAULT_3D_LOCAL_PLANE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y)
@@ -628,7 +628,7 @@
 		; reading coordinates
 		mov	rax,	qword ptr [rcx]				; x coord
 		push	rax
-		mov	rax,	qword ptr [rcx + (SIZEOF qword)]	; y coord
+		mov	rax,	qword ptr [rcx]				; x coord in stead of y coord
 		push	rax
 		
 		; resolving its new x position
@@ -667,9 +667,9 @@
 
 		; resolving its new y position
 		; getting its position from centre
-		mov	rbx,	GAMEOBJECT_SIZE_Y
+		mov	rbx,	GAMEOBJECT_SIZE_X			; using x instead of y
 		shr	rbx,	1					; centre coord
-		mov	rax,	qword ptr [rsp + (SIZEOF qword * 3)]    ; y coord
+		mov	rax,	qword ptr [rsp + (SIZEOF qword * 3)]    ; its x instead of y coord
 		sub	rax,	rbx					; position from centre
 		push	rax
 		
@@ -688,7 +688,7 @@
 		fistp	qword ptr [rsp]
 
 		; filling new y position
-		mov	rbx,	GAMEOBJECT_SIZE_Y
+		mov	rbx,	GAMEOBJECT_SIZE_X			; using x instead of y
 		shr	rbx,	1
 		mov	rax,	qword ptr [rsp]
 		add	rax,	rbx				; centre + y to get new position from top origin
