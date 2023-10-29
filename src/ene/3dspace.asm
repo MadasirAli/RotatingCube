@@ -22,7 +22,7 @@
 	TEST_ROTATION:
 		qword	0.0	; x
 		qword 	0.0	; y
-		qword 	90.0	; z
+		qword 	0.0	; z
 	TEST_ROTATION_BUFFER:
 		qword 	0	; x
 		qword 	0 	; y
@@ -428,8 +428,8 @@
 			mov	r11,	qword ptr [r14 + SIZEOF qword] 		; dot's y coord
 			mov	r12,	qword ptr [r14 + (SIZEOF qword * 2)]	; dot's z coord
 			; adding rotational transformations
-			add	r10,	qword ptr [TEST_ROTATION_BUFFER]		
-			add	r11,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword)]
+			mov	r10,	qword ptr [TEST_ROTATION_BUFFER]		
+			mov	r11,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword)]
 			;add	r12,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)]
 			; getting coordinate in linear space
 			push	rcx
@@ -626,9 +626,6 @@
 		mov	rbp,	rsp
 		; currently only transforming roation along z
 		; reading coordinates
-		mov	rax,	qword ptr [rcx + (SIZEOF qword * 2)]	; z coord
-		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)], rax
-
 		mov	rax,	qword ptr [rcx]				; x coord
 		push	rax
 		mov	rax,	qword ptr [rcx + (SIZEOF qword)]	; y coord
@@ -667,7 +664,7 @@
 		;xor	rax,	rax
 		;_TRANSROT_ADD_X:
 		mov	qword ptr [TEST_ROTATION_BUFFER],	rax
-		
+
 		; resolving its new y position
 		; getting its position from centre
 		mov	rbx,	GAMEOBJECT_SIZE_Y
@@ -695,8 +692,8 @@
 		shr	rbx,	1
 		mov	rax,	qword ptr [rsp]
 		add	rax,	rbx				; centre + y to get new position from top origin
-		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)],	rax
-
+		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword)],	rax
+		
 		mov	rax,	TEST_ROTATION_BUFFER
 
 		mov	rsp,	rbp
