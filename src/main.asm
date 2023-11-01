@@ -29,10 +29,6 @@ INCLUDE		diagnsts/time.asm
 		qword	0
 	tmp:
 		qword	0
-	angle:
-		qword 45.0
-	_10:
-		qword 10.0
 		
 	SECONDARY_HEAP_SIZE	equ	10 * (1024) * (1024)
 	; holding pointer to secondary heap
