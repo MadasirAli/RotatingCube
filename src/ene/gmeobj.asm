@@ -23,14 +23,14 @@
 		qword	0	;	global_z_scale
 
 	GAMEOBJECT_SIZE_X		equ	60
-	GAMEOBJECT_SIZE_Y		equ	60
-	GAMEOBJECT_SIZE_Z		equ	60
+	GAMEOBJECT_SIZE_Y		equ	1
+	GAMEOBJECT_SIZE_Z		equ	1
 
-	GAMEOBJECT_POSITION_X		equ	30
+	GAMEOBJECT_POSITION_X		equ	0
 	GAMEOBJECT_POSITION_Y		equ	30
 	GAMEOBJECT_POSITION_Z		equ	30
 
-	DEFAULT_3D_MESH_DATA_COUNT	equ	GAMEOBJECT_SIZE_X
+	DEFAULT_3D_MESH_DATA_COUNT	equ	(GAMEOBJECT_SIZE_X * GAMEOBJECT_SIZE_Y * GAMEOBJECT_SIZE_Z)
 	DEFAULT_3D_MESH_DATA:	
 		qword	DEFAULT_3D_MESH_DATA_COUNT dup(0)	; pointer to its 3D mesh data
 
@@ -74,7 +74,10 @@
 			imul	rcx,	DOT_SIZE
 			add	rbx,	rcx
 			
-			mov	qword ptr [rbx],	rsi		; x position of current mesh data
+			mov	r8,	rsi
+			add	r8,	GAMEOBJECT_POSITION_X
+
+			mov	qword ptr [rbx],	r8		; x position of current mesh data
 			mov	qword ptr [rbx + 8],	r9		; y position of current mesh data
 			mov	qword ptr [rbx + 16], 	r10		; z position of current mesh data
 
