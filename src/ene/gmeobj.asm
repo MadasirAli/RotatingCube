@@ -22,11 +22,11 @@
 		qword	0	;	global_y_scale
 		qword	0	;	global_z_scale
 
-	GAMEOBJECT_SIZE_X		equ	60
-	GAMEOBJECT_SIZE_Y		equ	1
+	GAMEOBJECT_SIZE_X		equ	30
+	GAMEOBJECT_SIZE_Y		equ	20
 	GAMEOBJECT_SIZE_Z		equ	1
 
-	GAMEOBJECT_POSITION_X		equ	0
+	GAMEOBJECT_POSITION_X		equ	30
 	GAMEOBJECT_POSITION_Y		equ	30
 	GAMEOBJECT_POSITION_Z		equ	30
 
@@ -74,8 +74,6 @@
 			imul	rcx,	DOT_SIZE
 			add	rbx,	rcx
 			
-			mov	r8,	rsi
-			add	r8,	GAMEOBJECT_POSITION_X
 
 			mov	qword ptr [rbx],	r8		; x position of current mesh data
 			mov	qword ptr [rbx + 8],	r9		; y position of current mesh data
@@ -84,7 +82,7 @@
 			mov	word ptr [rbx + RAW_DOT_OFFSET],	2588h			; filling the space with block
 			mov	qword ptr [rax + DEFAULT_3D_MESH_DATA],	rbx 
 			inc	rsi
-			jmp	DURING
+		
 			inc	r8
 			cmp	r8,	(GAMEOBJECT_POSITION_X + GAMEOBJECT_SIZE_X)
 			jne	DURING

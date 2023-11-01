@@ -644,15 +644,15 @@
 		; getting y position from centre
 		mov	rbx,	GAMEOBJECT_SIZE_Y
 		shr	rbx,	1					; centre coord
-		mov	rax,	qword ptr [rsp + (SIZEOF qword * 2)]    ; y coord
+		mov	rax,	qword ptr [rsp + SIZEOF qword]	        ; y coord
 		sub	rax,	rbx					; position from centre
 		push	rax
 
 		fild	qword ptr [rsp]	; y pos
 		fild	qword ptr [rsp] ; y pos
 		fmulp			; y pos * y pos
-		fstp	qword ptr [rsp]
 		push	0
+		fstp	qword ptr [rsp]
 		fild 	qword ptr [rsp + (SIZEOF qword * 2)]	; x pos
 		fild	qword ptr [rsp + (SIZEOF qword * 2)]	; x pos
 		fmulp						; x pos * x pos
@@ -687,8 +687,8 @@
 		;add	rax,	rbx
 		push	rcx
 		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 7)]
-		cmp	rcx,	0
-		jle	X_NOT_LESS
+		cmp	rcx,	1
+		jnl	X_NOT_LESS
 		imul	rax,	-1
 		X_NOT_LESS:
 		pop	rcx
