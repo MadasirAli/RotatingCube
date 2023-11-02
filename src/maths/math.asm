@@ -11,67 +11,57 @@
 .code
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
-;	Name		: rad2deg
-;	Description	: Converts radians to degrees
-;
-;	Parametres	: rcx = angle in radians
-;	Returns		: angle in degrees
-; --------------------------------------------------------------------------------
-rad2deg	PROC	
-		push	rbp
-		mov	rbp,	rsp
-		push	rcx				
-		mov	rax,	qword ptr [PIE_ANGLE_DEGREE]
-		push	rax
-		mov	rax,	qword ptr [PIE_DIVISOR_NUMERATOR]
-		push	rax
-		mov	rax,	qword ptr [PIE_DIVISOR_DENUMERATOR]
-		push	rax
-		push	0					; angle in radians
-		fld	qword ptr [rsp + (SIZEOF qword * 2)]	; st0 containg 22.0
-		fld	qword ptr [rsp + (SIZEOF qword * 1)]	; pushing 22.0 to st1, st0 containg 7.0
-		fdivp						; st0 containing the value of pie
-		fstp	qword ptr [rsp]				; storing pie temporary	
-		fld	qword ptr [rsp + (SIZEOF qword * 3)]	; loading 180
-		fld	qword ptr [rsp]				; loading pie
-		fdivp						; st0 containg the pie / 180
-		fstp	qword ptr [rsp]				; storing pie/180 temporary
-		fld	qword ptr [rsp + (SIZEOF qword * 4)]	; angle in degrees in st0
-		fld	qword ptr [rsp]				; pushing angle in degress to st1, st0 containg the pie/180
-		fmulp						; st0 containg the angle in radians
-		fstp	qword ptr [rsp]				; rsp point to the angle in radians
-		pop	rax
-		pop	rcx
-		pop	rcx
-		pop	rcx
-		pop	rcx
-		pop	rbp
-		ret
-rad2deg	ENDP
-; --------------------------------------------------------------------------------
-;  PROCEDURE
 ;	Name		: atan
 ;	Description	: Gives the ratio of cos0/sin0
 ;
 ;	Parametres	: rcx = angle in degrees
 ;	Returns		: Result.
 ; --------------------------------------------------------------------------------
-atan	PROC
-	push	rbp
-	mov	rsp,	rbp
-	call	cos
-	push	rax	; cos0
-	call	sin
-	push	rax	; sin0
-	fld	qword ptr [rsp + SIZEOF qword]		; cos0
-	fld	qword ptr [rsp]				; sin0
-	fdivp
-	push	0
-	fstp	qword ptr [rsp]
-	mov	rsp,	rbp	
-	pop	rbp
-	ret
-atan	ENDP
+	atan	PROC
+		push	rbp
+		mov	rbp,	rsp
+		push	rcx
+		call	cosrad
+		pop	rcx
+		push	rax	; cos0rad
+		push	rcx
+		call	sinrad
+		pop	rcx
+		push	rax	; sin0rad
+		fld	qword ptr [rsp + SIZEOF qword]		; cos0rad
+		fld	qword ptr [rsp]				; sin0rad
+		fdivp
+		push	0
+		fstp	qword ptr [rsp]
+		pop	rax
+		mov	rsp,	rbp	
+		pop	rbp
+		ret
+	atan	ENDP
+; --------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: sinrad
+;	Description	: Takes the sine function of an angle.
+;
+;	Parametres	: rcx = angle
+;	Returns		: value of result
+; --------------------------------------------------------------------------------
+	sinrad	PROC
+		push	rbp
+		mov	rbp,	rsp
+		mov	rcx,	PIE_HALF
+		call	deg2rad
+		push	rax
+		fld	qword ptr [rcx]
+		fld	qword ptr [rsp]
+		fsubp
+		fstp	qword ptr [rsp]
+		pop	rcx
+		call	cos
+		mov	rsp,	rbp	
+		pop	rbp
+		ret
+	sinrad	ENDP
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: sin
@@ -91,9 +81,30 @@ atan	ENDP
 		fstp	qword ptr [rsp]
 		pop	rcx
 		call	cos	
+		mov	rsp,	rbp
 		pop	rbp
 		ret
 	sin	ENDP
+; --------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: cosrad
+;	Description	: Takes the cosine function of an angle in radians
+;
+;	Parametres:	rcx = angle
+;	Returns	  :	value of result	
+; --------------------------------------------------------------------------------
+	cosrad	PROC
+		push	rbp
+		mov	rbp,	rsp
+		push	rcx
+		fld	qword ptr [rsp]
+		fcos
+		fstp	qword ptr [rsp]
+		pop	rax
+		mov	rsp,	rbp	
+		pop	rbp
+		ret
+	cosrad	ENDP
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: cos
@@ -116,6 +127,31 @@ atan	ENDP
 	cos	ENDP
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
+;	Name		: pie
+;	Description	: Calculates the value of pie.
+;
+;	Parametres	: None
+;	Returns		: value of pie.
+; --------------------------------------------------------------------------------
+	pie	PROC
+		push	rbp
+		mov	rbp,	rsp
+		mov	rax,	qword ptr [PIE_DIVISOR_NUMERATOR]
+		push	rax
+		mov	rax,	qword ptr [PIE_DIVISOR_DENUMERATOR]
+		push	rax
+		fld	qword ptr [rsp + SIZEOF qword]		; st0 containg 22.0
+		fld	qword ptr [rsp]				; pushing 22.0 to st1, st0 containg 7.0
+		fdivp						; st0 containing the value of pie
+		push	0
+		fstp	qword ptr [rsp]				; storing pie temporary
+		pop	rax
+		mov	rsp,	rbp
+		pop	rbp
+		ret
+	pie	ENDP
+; --------------------------------------------------------------------------------
+;  PROCEDURE
 ;	Name		: deg2rad
 ;	Description	: Converts Angles in degress to angle in radians.
 ;
@@ -125,31 +161,21 @@ atan	ENDP
 	deg2rad	PROC
 		push	rbp
 		mov	rbp,	rsp
-		push	rcx				
+		push	rcx
 		mov	rax,	qword ptr [PIE_ANGLE_DEGREE]
 		push	rax
-		mov	rax,	qword ptr [PIE_DIVISOR_NUMERATOR]
+		call	pie
 		push	rax
-		mov	rax,	qword ptr [PIE_DIVISOR_DENUMERATOR]
-		push	rax
-		push	0					; angle in radians
-		fld	qword ptr [rsp + (SIZEOF qword * 2)]	; st0 containg 22.0
-		fld	qword ptr [rsp + (SIZEOF qword * 1)]	; pushing 22.0 to st1, st0 containg 7.0
-		fdivp						; st0 containing the value of pie
-		fstp	qword ptr [rsp]				; storing pie temporary
 		fld	qword ptr [rsp]				; loading pie
-		fld	qword ptr [rsp + (SIZEOF qword * 3)]	; loading 180
+		fld	qword ptr [rsp + (SIZEOF qword * 1)]	; loading 180
 		fdivp						; st0 containg the pie / 180
 		fstp	qword ptr [rsp]				; storing pie/180 temporary
-		fld	qword ptr [rsp + (SIZEOF qword * 4)]	; angle in degrees in st0
+		fld	qword ptr [rsp + (SIZEOF qword * 2)]	; angle in degrees in st0
 		fld	qword ptr [rsp]				; pushing angle in degress to st1, st0 containg the pie/180
 		fmulp						; st0 containg the angle in radians
 		fstp	qword ptr [rsp]				; rsp point to the angle in radians
 		pop	rax
-		pop	rcx
-		pop	rcx
-		pop	rcx
-		pop	rcx
+		mov	rsp,	rbp
 		pop	rbp
 		ret
 	deg2rad	ENDP

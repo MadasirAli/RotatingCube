@@ -635,10 +635,6 @@
 		sub	rax,	GAMEOBJECT_POSITION_Y
 		push	rax
 
-		; getting y-error with height
-		fild	qword ptr [rsp]	; y coord
-		\  
-
 		; getting magnitude
 		; getting x position from its centre
 		mov	rbx,	GAMEOBJECT_SIZE_X
@@ -653,31 +649,28 @@
 		sub	rax,	rbx					; position from centre
 		push	rax
 
+
 		; finding atan0 = inital angle
-		push	rsp
-		push	rcx
 		fild	qword ptr [rsp] 		; y comp
 		fild	qword ptr [rsp + SIZEOF qword]	; x comp
 		fdivp					; y / x
+		push	rcx
 		push	0
 		fstp	qword ptr [rsp]			; angle in radians
 		pop	rcx				; angle in radians
-		call	rad2deg				; angle in degrees
-		mov	rcx,	rax
+		;call	rad2deg				; angle in degrees
+		;mov	rcx,	rax
 		call	atan
 		pop	rcx
-		pop	rsp
 		push	rax				; angles in degrees
 		
-		
-
 		fild	qword ptr [rsp + SIZEOF qword]	; y pos
 		fild	qword ptr [rsp + SIZEOF qword]  ; y pos
 		fmulp			; y pos * y pos
 		push	0
 		fstp	qword ptr [rsp]
-		fild 	qword ptr [rsp + (SIZEOF qword * 2)]	; x pos
-		fild	qword ptr [rsp + (SIZEOF qword * 2)]	; x pos
+		fild 	qword ptr [rsp + (SIZEOF qword * 3)]	; x pos
+		fild	qword ptr [rsp + (SIZEOF qword * 3)]	; x pos
 		fmulp						; x pos * x pos
 		push	0
 		fstp	qword ptr [rsp]
@@ -692,6 +685,12 @@
 		; getting cos0 => cos(ROTATION_Z)
 		push	rcx
 		mov	rcx,	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)]	; z rotation
+		fld	qword ptr [rsp + (SIZEOF qword * 4)]		; relative rotation
+		push	rcx
+		fld	qword ptr [rsp]					; z rotation
+		faddp							; 0-target
+		fstp	qword ptr [rsp]
+		pop	rcx
 		call	cos
 		pop	rcx
 		push	rax
@@ -709,7 +708,7 @@
 		mov	rax,	qword ptr [rsp]	
 		;add	rax,	rbx
 		push	rcx
-		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 7)]
+		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 8)]	; pos x
 		cmp	rcx,	1
 		jnl	X_NOT_LESS
 		imul	rax,	-1
@@ -725,6 +724,12 @@
 		; getting sin0 => sin(ROTATION_Z)
 		push	rcx
 		mov	rcx, 	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)]	; z rotation
+		fld	qword ptr [rsp + (SIZEOF qword * 6)]	; relative angle
+		push	rcx
+		fld	qword ptr [rsp]				; z rotation
+		faddp						; 0-target
+		fstp	qword ptr [rsp]
+		pop	rcx
 		call	sin
 		pop	rcx
 		push	rax
@@ -741,7 +746,7 @@
 		shr	rbx,	1
 		mov	rax,	qword ptr [rsp]
 		push	rcx
-		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 9)]
+		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 10)]	; pos y
 		cmp	rcx,	0
 		jnl	Y_NOT_LESS
 		imul	rax,	-1
