@@ -11,6 +11,69 @@
 .code
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
+;	Name		: rad2deg
+;	Description	: Converts radians to degrees
+;
+;	Parametres	: rcx = angle in radians
+;	Returns		: angle in degrees
+; --------------------------------------------------------------------------------
+rad2deg	PROC	
+		push	rbp
+		mov	rbp,	rsp
+		push	rcx				
+		mov	rax,	qword ptr [PIE_ANGLE_DEGREE]
+		push	rax
+		mov	rax,	qword ptr [PIE_DIVISOR_NUMERATOR]
+		push	rax
+		mov	rax,	qword ptr [PIE_DIVISOR_DENUMERATOR]
+		push	rax
+		push	0					; angle in radians
+		fld	qword ptr [rsp + (SIZEOF qword * 2)]	; st0 containg 22.0
+		fld	qword ptr [rsp + (SIZEOF qword * 1)]	; pushing 22.0 to st1, st0 containg 7.0
+		fdivp						; st0 containing the value of pie
+		fstp	qword ptr [rsp]				; storing pie temporary	
+		fld	qword ptr [rsp + (SIZEOF qword * 3)]	; loading 180
+		fld	qword ptr [rsp]				; loading pie
+		fdivp						; st0 containg the pie / 180
+		fstp	qword ptr [rsp]				; storing pie/180 temporary
+		fld	qword ptr [rsp + (SIZEOF qword * 4)]	; angle in degrees in st0
+		fld	qword ptr [rsp]				; pushing angle in degress to st1, st0 containg the pie/180
+		fmulp						; st0 containg the angle in radians
+		fstp	qword ptr [rsp]				; rsp point to the angle in radians
+		pop	rax
+		pop	rcx
+		pop	rcx
+		pop	rcx
+		pop	rcx
+		pop	rbp
+		ret
+rad2deg	ENDP
+; --------------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: atan
+;	Description	: Gives the ratio of cos0/sin0
+;
+;	Parametres	: rcx = angle in degrees
+;	Returns		: Result.
+; --------------------------------------------------------------------------------
+atan	PROC
+	push	rbp
+	mov	rsp,	rbp
+	call	cos
+	push	rax	; cos0
+	call	sin
+	push	rax	; sin0
+	fld	qword ptr [rsp + SIZEOF qword]		; cos0
+	fld	qword ptr [rsp]				; sin0
+	fdivp
+	push	0
+	fstp	qword ptr [rsp]
+	mov	rsp,	rbp	
+	pop	rbp
+	ret
+atan	ENDP
+; --------------------------------------------------------------------------------
+;  PROCEDURE
 ;	Name		: sin
 ;	Description	: Takes the sine function of an angle.
 ;
@@ -42,7 +105,7 @@
 	cos	PROC
 		push	rbp
 		mov	rbp,	rsp
-		call	angle2rad
+		call	deg2rad
 		push	rax
 		fld	qword ptr [rsp]
 		fcos
@@ -53,13 +116,13 @@
 	cos	ENDP
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
-;	Name		: angle2rad
+;	Name		: deg2rad
 ;	Description	: Converts Angles in degress to angle in radians.
 ;
 ;	Parametres	: rcx = angle in degrees
 ;	Returns		: angle in radians
 ; --------------------------------------------------------------------------------
-	angle2rad	PROC
+	deg2rad	PROC
 		push	rbp
 		mov	rbp,	rsp
 		push	rcx				
@@ -89,7 +152,7 @@
 		pop	rcx
 		pop	rbp
 		ret
-	angle2rad	ENDP
+	deg2rad	ENDP
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: fctril

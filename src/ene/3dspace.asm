@@ -634,6 +634,11 @@
 		mov	rax,	qword ptr [rcx + SIZEOF qword]		; y coord
 		sub	rax,	GAMEOBJECT_POSITION_Y
 		push	rax
+
+		; getting y-error with height
+		fild	qword ptr [rsp]	; y coord
+		\  
+
 		; getting magnitude
 		; getting x position from its centre
 		mov	rbx,	GAMEOBJECT_SIZE_X
@@ -648,8 +653,26 @@
 		sub	rax,	rbx					; position from centre
 		push	rax
 
-		fild	qword ptr [rsp]	; y pos
-		fild	qword ptr [rsp] ; y pos
+		; finding atan0 = inital angle
+		push	rsp
+		push	rcx
+		fild	qword ptr [rsp] 		; y comp
+		fild	qword ptr [rsp + SIZEOF qword]	; x comp
+		fdivp					; y / x
+		push	0
+		fstp	qword ptr [rsp]			; angle in radians
+		pop	rcx				; angle in radians
+		call	rad2deg				; angle in degrees
+		mov	rcx,	rax
+		call	atan
+		pop	rcx
+		pop	rsp
+		push	rax				; angles in degrees
+		
+		
+
+		fild	qword ptr [rsp + SIZEOF qword]	; y pos
+		fild	qword ptr [rsp + SIZEOF qword]  ; y pos
 		fmulp			; y pos * y pos
 		push	0
 		fstp	qword ptr [rsp]
