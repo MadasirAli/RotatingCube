@@ -12,28 +12,23 @@
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: atan
-;	Description	: Gives the ratio of cos0/sin0
+;	Description	: Gives the angles between 2 lines
 ;
-;	Parametres	: rcx = angle in degrees
-;	Returns		: Result.
+;	Parametres	: rcx = x magnitude
+;			  rdx = y magnitude
+;	Returns		: angle in degrees
 ; --------------------------------------------------------------------------------
 	atan	PROC
 		push	rbp
 		mov	rbp,	rsp
+		push	rdx
+		fild	qword ptr [rsp]
 		push	rcx
-		call	cosrad
-		pop	rcx
-		push	rax	; cos0rad
-		push	rcx
-		call	sinrad
-		pop	rcx
-		push	rax	; sin0rad
-		fld	qword ptr [rsp + SIZEOF qword]		; cos0rad
-		fld	qword ptr [rsp]				; sin0rad
-		fdivp
-		push	0
+		fild	qword ptr [rsp]
+		fpatan
 		fstp	qword ptr [rsp]
-		pop	rax
+		pop	rcx
+		call	rad2deg
 		mov	rsp,	rbp	
 		pop	rbp
 		ret
@@ -146,6 +141,35 @@
 	pie	ENDP
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
+;	Name		: rad2deg
+;	Description	: Converts Angles in degress to angle in radians.
+;
+;	Parametres	: rcx = angle in radians
+;	Returns		: angle in degrees
+; --------------------------------------------------------------------------------
+	rad2deg	PROC
+		push	rbp
+		mov	rbp,	rsp
+		push	rcx
+		mov	rax,	qword ptr [PIE_ANGLE_DEGREE]
+		push	rax
+		call	pie
+		push	rax
+		fld	qword ptr [rsp + (SIZEOF qword * 1)]	; loading 180
+		fld	qword ptr [rsp]				; loading pie
+		fdivp						; st0 containg the 180/pie
+		fstp	qword ptr [rsp]				; storing 180/pie temporary
+		fld	qword ptr [rsp + (SIZEOF qword * 2)]	; angle in degrees in st0
+		fld	qword ptr [rsp]				; pushing angle in degress to st1, st0 containg the 180/pie
+		fmulp						; st0 containg the angle in radians
+		fstp	qword ptr [rsp]				; rsp point to the angle in radians
+		pop	rax
+		mov	rsp,	rbp
+		pop	rbp
+		ret
+	rad2deg	ENDP
+; --------------------------------------------------------------------------------
+;  PROCEDURE
 ;	Name		: deg2rad
 ;	Description	: Converts Angles in degress to angle in radians.
 ;
@@ -173,6 +197,7 @@
 		pop	rbp
 		ret
 	deg2rad	ENDP
+
 ; --------------------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: fctril

@@ -651,18 +651,14 @@
 
 
 		; finding atan0 = inital angle
-		fild	qword ptr [rsp] 		; y comp
-		fild	qword ptr [rsp + SIZEOF qword]	; x comp
-		fdivp					; y / x
 		push	rcx
-		push	0
-		fstp	qword ptr [rsp]			; angle in radians
-		pop	rcx				; angle in radians
-		;call	rad2deg				; angle in degrees
-		;mov	rcx,	rax
+		push	rdx
+		mov	rdx,	qword ptr [rsp + (SIZEOF qword * 2)] 		; y comp
+		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 3)]		; x comp
 		call	atan
+		pop	rdx
 		pop	rcx
-		push	rax				; angles in degrees
+		push	rax				; relative angle
 		
 		fild	qword ptr [rsp + SIZEOF qword]	; y pos
 		fild	qword ptr [rsp + SIZEOF qword]  ; y pos
@@ -709,9 +705,9 @@
 		;add	rax,	rbx
 		push	rcx
 		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 8)]	; pos x
-		cmp	rcx,	1
+		cmp	rcx,	0
 		jnl	X_NOT_LESS
-		imul	rax,	-1
+;		imul	rax,	-1
 		X_NOT_LESS:
 		pop	rcx
 		add	rax,	rbx
@@ -749,7 +745,7 @@
 		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 10)]	; pos y
 		cmp	rcx,	0
 		jnl	Y_NOT_LESS
-		imul	rax,	-1
+;		imul	rax,	-1
 		Y_NOT_LESS:
 		pop	rcx
 		add	rax,	rbx
