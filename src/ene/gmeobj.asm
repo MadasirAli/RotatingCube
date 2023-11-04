@@ -22,11 +22,11 @@
 		qword	0	;	global_y_scale
 		qword	0	;	global_z_scale
 
-	GAMEOBJECT_SIZE_X		equ	30
+	GAMEOBJECT_SIZE_X		equ	10
 	GAMEOBJECT_SIZE_Y		equ	2
 	GAMEOBJECT_SIZE_Z		equ	1
 
-	GAMEOBJECT_POSITION_X		equ	0
+	GAMEOBJECT_POSITION_X		equ	30
 	GAMEOBJECT_POSITION_Y		equ	30
 	GAMEOBJECT_POSITION_Z		equ	30
 

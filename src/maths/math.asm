@@ -49,15 +49,11 @@
 	sinrad	PROC
 		push	rbp
 		mov	rbp,	rsp
-		mov	rcx,	PIE_HALF
-		call	deg2rad
-		push	rax
-		fld	qword ptr [rcx]
+		push	rcx
 		fld	qword ptr [rsp]
-		fsubp
+		fsin
 		fstp	qword ptr [rsp]
-		pop	rcx
-		call	cos
+		pop	rax
 		mov	rsp,	rbp	
 		pop	rbp
 		ret
@@ -73,14 +69,12 @@
 	sin	PROC
 		push	rbp
 		mov	rbp,	rsp
-		push	rcx
-		mov	rcx,	PIE_HALF
-		fld	qword ptr [rcx]
-		fld	qword ptr [rsp]
-		fsubp
+		call	deg2rad
+		push	rax
+		fld 	qword ptr [rsp]
+		fsin
 		fstp	qword ptr [rsp]
-		pop	rcx
-		call	cos	
+		pop	rax
 		mov	rsp,	rbp
 		pop	rbp
 		ret
