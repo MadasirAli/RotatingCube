@@ -5,7 +5,7 @@ INCLUDE		rstrizr.asm
 .data
 	SLEEP_TIME	equ	1		; ms
 	PER_FRAME_ROT_CHANGE:
-		qword	0.3
+		qword	1.0
 
 .code
 ; ---------------------------------------------------------------------------------------

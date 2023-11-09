@@ -30,7 +30,7 @@ INCLUDE		diagnsts/time.asm
 	tmp:
 		qword	0
 		
-	SECONDARY_HEAP_SIZE	equ	10 * (1024) * (1024)
+	SECONDARY_HEAP_SIZE	equ	200 * (1024) * (1024)
 	; holding pointer to secondary heap
 	S_HEAP:
 		qword 0

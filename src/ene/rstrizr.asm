@@ -1,10 +1,10 @@
 .data
 
 	; size of the screen place
-	_2D_PLANE_SIZE_X		equ	60
-	_2D_PLANE_SIZE_Y		equ	60
+	_2D_PLANE_SIZE_X		equ	240
+	_2D_PLANE_SIZE_Y		equ	170
 
-	MAX_DEPTH			equ	60
+	MAX_DEPTH			equ	240
 	
 	_2D_PLANE_SIZE			equ	(_2D_PLANE_SIZE_X * _2D_PLANE_SIZE_Y)
 	DEFAULT_PIXEL_BUFFER_SIZE	equ	_2D_PLANE_SIZE + _2D_PLANE_SIZE_X
@@ -247,32 +247,28 @@
 	initplne	PROC
 		push	rbp
 		mov	rbp,	rsp
-		mov	rcx,	qword ptr [S_HEAP]
-		mov	rdx,	0Ch
-		mov	r8,	(_2D_PLANE_SIZE * RAW_DOT_SIZE)
-		call	malloc
-		push	rax
 		push	rbx
 		push	rsi
 		xor	rsi,	rsi
 		DURING:
 			cmp	rsi,	_2D_PLANE_SIZE
 			je	DONE
-			mov	rax,	rsi
-			imul	rax,	SIZEOF qword
+
+			mov	rcx,	qword ptr [S_HEAP]
+			mov	rdx,	0Ch
+			mov	r8,	RAW_DOT_SIZE
+			call	malloc
+
+			mov	rcx,	rsi
+			imul	rcx,	SIZEOF qword
 			mov	rdx,	_2D_PLANE	
-			add	rax, 	rdx
-			mov	rbx,	rsi
-			imul	rbx,	RAW_DOT_SIZE
-			mov	rcx,	qword ptr [rsp + (SIZEOF qword * 2)]		
-			add	rbx,	rcx
-			mov	qword ptr [rax],	rbx
+			add	rcx, 	rdx
+			mov	qword ptr [rcx],	rax
 			inc 	rsi
 			jmp	DURING
 		DONE:
 		pop	rsi
 		pop	rbx
-		pop	rax
 		pop	rbp
 		ret
 	initplne	ENDP

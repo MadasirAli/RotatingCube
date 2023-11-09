@@ -22,12 +22,12 @@
 		qword	0	;	global_y_scale
 		qword	0	;	global_z_scale
 
-	GAMEOBJECT_SIZE_X		equ	30
-	GAMEOBJECT_SIZE_Y		equ	30
+	GAMEOBJECT_SIZE_X		equ	120
+	GAMEOBJECT_SIZE_Y		equ	100
 	GAMEOBJECT_SIZE_Z		equ	1
 
-	GAMEOBJECT_POSITION_X		equ	15
-	GAMEOBJECT_POSITION_Y		equ	15
+	GAMEOBJECT_POSITION_X		equ	60
+	GAMEOBJECT_POSITION_Y		equ	50
 	GAMEOBJECT_POSITION_Z		equ	30
 
 	DEFAULT_3D_MESH_DATA_COUNT	equ	(GAMEOBJECT_SIZE_X * GAMEOBJECT_SIZE_Y * GAMEOBJECT_SIZE_Z)
@@ -48,13 +48,6 @@
 	_initmsh	PROC
 		push	rbp
 		mov	rbp,	rsp
-		sub	rsp,	32
-		mov	rcx,	qword ptr [S_HEAP]
-		mov	rdx,	0Ch
-		mov	r8,	(DOT_SIZE * DEFAULT_3D_MESH_DATA_COUNT)
-		call	malloc
-		add	rsp,	32
-		push	rax
 		push	rsi
 		push	rbx
 		xor	rsi,	rsi
@@ -67,13 +60,24 @@
 		DURING:
 			cmp	rsi,	DEFAULT_3D_MESH_DATA_COUNT
 			je 	DONE
+
+			push	r8
+			push	r9
+			push	r10
+		
+			mov	rcx,	qword ptr [S_HEAP]
+			mov	rdx,	0Ch
+			mov	r8,	DOT_SIZE
+			call	malloc
+
+			pop	r10
+			pop	r9
+			pop	r8
+
+			mov	rbx,	rax
+
 			mov	rax,	rsi
 			imul	rax,	SIZEOF qword
-			mov	rbx,	qword ptr [rsp + (SIZEOF qword * 2)]
-			mov	rcx,	rsi
-			imul	rcx,	DOT_SIZE
-			add	rbx,	rcx
-			
 
 			mov	qword ptr [rbx],	r8		; x position of current mesh data
 			mov	qword ptr [rbx + 8],	r9		; y position of current mesh data
@@ -97,7 +101,6 @@
 		DONE:
 		pop	rbx
 		pop	rsi
-		pop	rax
 		pop	rbp
 		ret
 	_initmsh	ENDP

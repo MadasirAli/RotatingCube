@@ -4,9 +4,9 @@
 	DEFAULT_3D_SPACE_SIZE_Y		equ	60
 	DEFAULT_3D_SPACE_SIZE_Z		equ	60
 
-	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	60
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	60
-	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	60
+	DEFAULT_3D_LOCAL_SPACE_SIZE_X	equ	240
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Y	equ	170
+	DEFAULT_3D_LOCAL_SPACE_SIZE_Z	equ	240
 	
 	DEFAULT_3D_LOCAL_SPACE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y * DEFAULT_3D_LOCAL_SPACE_SIZE_Z)
 	DEFAULT_3D_LOCAL_PLANE_SIZE	equ	(DEFAULT_3D_LOCAL_SPACE_SIZE_X * DEFAULT_3D_LOCAL_SPACE_SIZE_Y)
@@ -548,20 +548,6 @@
 	initspacs	PROC
 		push	rbp
 		mov	rbp,	rsp
-		; allocating memory in heap
-		mov	rcx,	qword ptr [S_HEAP]
-		push	rcx
-		mov	rdx,	0Ch
-		mov	r8,	(DEFAULT_3D_LOCAL_SPACE_SIZE * RAW_DOT_SIZE)
-		call	malloc
-		pop	rcx
-		; rax containg the first dot of local space
-		push	rax
-		mov	rdx,	0Ch
-		mov	r8,	(DEFAULT_3D_SPACE_SIZE * RAW_DOT_SIZE)	
-		call	malloc
-		; rax containing the first dot of global space
-		push	rax
 		; filling array of spaces
 		; filling global space
 		; setting counters
@@ -573,17 +559,17 @@
 		DURING_GLOBAL:
 			cmp	rsi,	DEFAULT_3D_SPACE_SIZE
 			je	DONE_GLOBAL
+
+			; allocating memory in heap
+			mov	rcx,	qword ptr [S_HEAP]
+			mov	rdx,	0Ch
+			mov	r8,	RAW_DOT_SIZE
+			call	malloc
+
 			mov	rbx,	rsi
 			imul	rbx,	SIZEOF qword
 			; rbx containing the offset to current index in array
-			mov	rax,	rsi
-			imul	rax,	RAW_DOT_SIZE
-			; rax containing the offset to current raw dot
-			mov	rcx,	qword ptr [rsp + (SIZEOF qword * 2)]
-			; rax containing base of dots in memory of global space
-			; writing the dots address in array
-			add	rcx,	rax						; rax containing the address of the dot
-			mov	qword ptr [rbx + DEFAULT_3D_SPACE],	rcx
+			mov	qword ptr [rbx + DEFAULT_3D_SPACE],	rax
 			inc	rsi
 			jmp	DURING_GLOBAL	
 		DONE_GLOBAL:
@@ -599,24 +585,22 @@
 		DURING_LOCAL:
 			cmp	rsi,	DEFAULT_3D_LOCAL_SPACE_SIZE
 			je	DONE_LOCAL
+
+			; rax containg the first dot of local space
+			mov	rcx,	qword ptr [S_HEAP]
+			mov	rdx,	0Ch
+			mov	r8,	RAW_DOT_SIZE	
+			call	malloc
+
 			mov	rbx,	rsi
 			imul	rbx,	SIZEOF qword
 			; rbx containing the offset to current index in array
-			mov	rax,	rsi
-			imul	rax,	RAW_DOT_SIZE
-			; rax containing the offset to current raw dot
-			mov	rcx,	qword ptr [rsp + (SIZEOF qword * 3)]
-			; rax containing base of dots in memory of global space
-			; writing the dots address in array
-			add	rcx,	rax						; rax containing the address of the dot
-			mov	qword ptr [rbx + DEFAULT_3D_LOCAL_SPACE],	rcx
+			mov	qword ptr [rbx + DEFAULT_3D_LOCAL_SPACE],	rax
 			inc	rsi
 			jmp	DURING_LOCAL
 		DONE_LOCAL:
 			pop	rbx
 			pop	rsi
-		pop	rax
-		pop	rax
 
 		pop	rbp
 		ret
@@ -701,17 +685,8 @@
 		;  filling new x position
 		mov	rbx, 	GAMEOBJECT_SIZE_X
 		shr	rbx,	1
-		mov	rax,	qword ptr [rsp]	
-		;add	rax,	rbx
-		push	rcx
-		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 8)]	; pos x
-		cmp	rcx,	0
-		jnl	X_NOT_LESS
-;		imul	rax,	-1
-		X_NOT_LESS:
-		pop	rcx
+		mov	rax,	qword ptr [rsp]
 		add	rax,	rbx
-
 		mov	qword ptr [TEST_ROTATION_BUFFER],	rax
 
 		; resolving its new y position
@@ -741,13 +716,6 @@
 		mov	rbx,	GAMEOBJECT_SIZE_Y
 		shr	rbx,	1
 		mov	rax,	qword ptr [rsp]
-		push	rcx
-		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 10)]	; pos y
-		cmp	rcx,	0
-		jnl	Y_NOT_LESS
-;		imul	rax,	-1
-		Y_NOT_LESS:
-		pop	rcx
 		add	rax,	rbx
 		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword)],	rax
 		
