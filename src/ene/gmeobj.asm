@@ -34,6 +34,10 @@
 	DEFAULT_3D_MESH_DATA:	
 		qword	DEFAULT_3D_MESH_DATA_COUNT dup(0)	; pointer to its 3D mesh data
 
+	RED_COLOR	equ	4h
+	BLUE_COLOR	equ	1h
+	GREEN_COLOR	equ	2h
+
 
 .code
 	fillmesh	PROC
@@ -84,6 +88,7 @@
 			mov	qword ptr [rbx + 16], 	r10		; z position of current mesh data
 
 			mov	word ptr [rbx + RAW_DOT_OFFSET],	2588h			; filling the space with block
+			mov	word ptr [rbx + RAW_DOT_OFFSET + SIZEOF word], BLUE_COLOR
 			mov	qword ptr [rax + DEFAULT_3D_MESH_DATA],	rbx 
 			inc	rsi
 		

@@ -7,14 +7,25 @@ AttachConsole			PROTO
 WriteConsoleA			PROTO
 WriteConsoleW			PROTO
 SetConsoleCursorPosition	PROTO
+WriteConsoleOutputW		PROTO
 
 .data
 	; CHAR_INFO
-	CHAR_INFO_SIZE:
-		qword	4
+	CHAR_INFO_SIZE	equ	4
 	CHAR_INFO:
 		word	0	; uniCode or asCII
 		word	0 	; attributesv
+	COORD_SIZE	equ	4
+	COORD:
+		word	0	; x
+		word	0	; y
+
+	SMALL_RECT_SIZE	equ	8
+	SMALL_RECT:
+		word	0	; left-top-x
+		word	0	; left-top-y
+		word	0	; right-top-x
+		word	0	; right-top-y
 
 	; Constants
 	STD_INPUT_HANDLE	equ 	-10
@@ -26,6 +37,30 @@ SetConsoleCursorPosition	PROTO
 	ATTACH_PARENT_PROCESS	equ	-1
 
 .code
+; -------------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: wrteconoutw
+;	Description	: Writes a 2d buffer of char_info to screen.
+;
+;	Parametres	:-
+;			rcx = handle to console output
+;			rdx = pointer to 2d char_info bufffer
+;			r8  = coord buffer size
+;			r9  = coord buffer start from coord
+;			Stack:- lpWriteRegion
+; ------------------------------------------------------------------------
+	wrteconoutw	PROC
+		push	rbp	
+		mov	rbp,	rsp
+		mov	rax,	qword ptr [rsp + (SIZEOF qword * 2)]
+		push	rax
+		push	rax
+		sub	rsp,	32
+		call	WriteConsoleOutputW
+		mov	rsp,	rbp
+		pop	rbp
+		ret
+	wrteconoutw	ENDP
 ; -------------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: srcrsrps

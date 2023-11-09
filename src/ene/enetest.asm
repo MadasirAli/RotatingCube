@@ -7,6 +7,18 @@ INCLUDE		rstrizr.asm
 	PER_FRAME_ROT_CHANGE:
 		qword	0.3
 
+	BUFFER_SMALL_RECT:
+		word	0
+		word	0
+		word	_2D_PLANE_SIZE_X
+		word	_2D_PLANE_SIZE_Y
+	BUFFER_POSITION_COORD:
+		word	0
+		word	0
+	BUFFER_SIZE_COORD:
+		word	_2D_PLANE_SIZE_X
+		word	_2D_PLANE_SIZE_Y		
+
 .code
 ; ---------------------------------------------------------------------------------------
 ;  PROCEDURE
@@ -73,10 +85,14 @@ INCLUDE		rstrizr.asm
 		mov	r9,	DEFAULT_3D_LOCAL_SPACE		; local space
 		call	con3d22d
 		; 3- Fill Buffer
-		mov	rcx,	_2D_PLANE		; plane
-		mov	rdx,	_2D_PLANE_SIZE		; plane size
-		mov	r8,	DEFAULT_PIXEL_BUFFER	; pixel buffer	
-		call	plne2pix
+		mov	rcx,	_2D_PLANE
+		mov	rdx,	_2D_PLANE_SIZE
+		mov	r8,	DEFAULT_CHARACTER_BUFFER
+		call	plne2chr
+;		mov	rcx,	_2D_PLANE		; plane
+;		mov	rdx,	_2D_PLANE_SIZE		; plane size
+;		mov	r8,	DEFAULT_PIXEL_BUFFER	; pixel buffer	
+;		call	plne2pix
 
 		;4- Render
 		; setting cursor position to start
@@ -84,23 +100,27 @@ INCLUDE		rstrizr.asm
 		xor	rdx,	rdx	
 		call	stcrsrps
 
-; --------
-		mov	rax,	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)]
-		push	rax
-		fld	qword ptr [rsp]
-		fistp	qword ptr [rsp]
-		pop	rax
-		add	rax,	30
-	;	mov	qword ptr [DEFAULT_PIXEL_BUFFER],	rax
-; --------
+
 		; Writing buffer full of wide characters
-		mov	rcx,	qword ptr [stdHnd]		; handle to console
-		mov	rdx,	DEFAULT_PIXEL_BUFFER		; buffer of wide characters
-		mov	r8,	DEFAULT_PIXEL_BUFFER_SIZE 	; number of chracters to write
-		mov	r9,	tmp				; current numbers of characters written
-		push	0					; reserved
-		call	wrteconw	
-		add	rsp,	8				; cleaning stack parametre
+		mov	rcx,	qword ptr [stdHnd]
+		mov	rdx,	DEFAULT_CHARACTER_BUFFER
+		xor	r8,	r9
+		mov	r9,	r8
+		mov	r8d,	dword ptr [BUFFER_SIZE_COORD]
+		mov	r9d,	dword ptr [BUFFER_POSITION_COORD]
+		mov	rax,	BUFFER_SMALL_RECT
+		push	rax
+		call	wrteconoutw
+		pop	rax
+
+
+;		mov	rcx,	qword ptr [stdHnd]		; handle to console
+;		mov	rdx,	DEFAULT_PIXEL_BUFFER		; buffer of wide characters
+;		mov	r8,	DEFAULT_PIXEL_BUFFER_SIZE 	; number of chracters to write
+;		mov	r9,	tmp				; current numbers of characters written
+;		push	0					; reserved
+;		call	wrteconw	
+;		add	rsp,	8				; cleaning stack parametre
 
 		; sleeping
 		mov	rcx,	SLEEP_TIME

@@ -8,14 +8,69 @@
 	
 	_2D_PLANE_SIZE			equ	(_2D_PLANE_SIZE_X * _2D_PLANE_SIZE_Y)
 	DEFAULT_PIXEL_BUFFER_SIZE	equ	_2D_PLANE_SIZE + _2D_PLANE_SIZE_X
+	DEFAULT_CHARACTER_BUFFER_SIZE	equ	_2D_PLANE_SIZE
 
 	_2D_PLANE:
 		qword	_2D_PLANE_SIZE			dup (0)
 
 	DEFAULT_PIXEL_BUFFER:
 		word 	DEFAULT_PIXEL_BUFFER_SIZE	dup (0)
+	DEFAULT_CHARACTER_BUFFER:
+		dword 	DEFAULT_CHARACTER_BUFFER_SIZE	dup (0)
 
 .code
+; -----------------------------------------------------------------------
+;  PROCEDURE
+;	Name		: plne2chr
+;	Description	: Converts Raw Dots in the plane to Characters_Info
+;
+;	Parametres:-
+;	rcx = address of plane
+;	rdx = size of plane
+;	r8  = address to characters buffer
+;
+;	Returns: None.
+; -----------------------------------------------------------------------
+	plne2chr	PROC
+		; saving callers stack
+		push	rbp
+		; creating new stack frame
+		mov	rbp,	rsp
+		; saving non volatile registers
+		push	rbp
+		xor	rbp, rbp
+		; setting counters
+		push	rsi
+		push	rdi
+		xor	rsi,	rsi
+		mov	rdi,	rsi
+		; setting buffer register
+		mov	rax,	rdi
+		DURING:
+			cmp	rsi,	_2D_PLANE_SIZE
+			je	DONE
+
+			mov	r9,	SIZEOF qword
+			imul	r9, 	rsi				; r9 giving offset
+			mov	rbx,	qword ptr [rcx + r9]		; containg the pointer to raw dot
+
+			mov	eax,	dword ptr [rbx]			; the pure pixel
+			mov	dword ptr [r8  + rdi], eax		; fitting in buffer
+
+			inc	rsi
+			add	rdi,	SIZEOF	dword	
+
+			jmp	DURING
+		DONE:
+		pop	rdi
+		pop	rsi
+		; restoring non volatile registers
+		pop	rbp
+		; restoring stack
+		pop	rbp
+		; returning to caller
+		ret		
+	plne2chr	ENDP
 ; -----------------------------------------------------------------------
 ;  PROCEDURE
 ;	Name		: plne2pix
