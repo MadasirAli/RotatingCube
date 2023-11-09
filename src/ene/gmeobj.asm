@@ -24,10 +24,10 @@
 
 	GAMEOBJECT_SIZE_X		equ	30
 	GAMEOBJECT_SIZE_Y		equ	30
-	GAMEOBJECT_SIZE_Z		equ	1
+	GAMEOBJECT_SIZE_Z		equ	30
 
-	GAMEOBJECT_POSITION_X		equ	22
-	GAMEOBJECT_POSITION_Y		equ	22
+	GAMEOBJECT_POSITION_X		equ	15
+	GAMEOBJECT_POSITION_Y		equ	15
 	GAMEOBJECT_POSITION_Z		equ	15
 
 	DEFAULT_3D_MESH_DATA_COUNT	equ	(GAMEOBJECT_SIZE_X * GAMEOBJECT_SIZE_Y * GAMEOBJECT_SIZE_Z)
@@ -37,7 +37,9 @@
 	RED_COLOR	equ	4h
 	BLUE_COLOR	equ	1h
 	GREEN_COLOR	equ	2h
-
+	CYAN_COLOR	equ	3h
+	WHITE_COLOR	equ	7h	
+	YELLOW_COLOR	equ	6h
 
 .code
 	fillmesh	PROC
@@ -88,7 +90,38 @@
 			mov	qword ptr [rbx + 16], 	r10		; z position of current mesh data
 
 			mov	word ptr [rbx + RAW_DOT_OFFSET],	2588h			; filling the space with block
+			cmp	r8,	GAMEOBJECT_POSITION_X
+			je	ADD_GREEN_COLOR
+			cmp	r9,	GAMEOBJECT_POSITION_Y
+			je	ADD_BLUE_COLOR
+			cmp	r10,	GAMEOBJECT_POSITION_Z
+			je	ADD_RED_COLOR
+			cmp	r8,	(GAMEOBJECT_POSITION_X + GAMEOBJECT_SIZE_X)-1
+			je	ADD_CYAN_COLOR
+			cmp	r9, 	(GAMEOBJECT_POSITION_Y + GAMEOBJECT_SIZE_Y)-1
+			je	ADD_WHITE_COLOR
+			cmp	r10,	(GAMEOBJECT_POSITION_Z + GAMEOBJECT_SIZE_Z)-1
+			je	ADD_YELLOW_COLOR
+			jmp	ADD_RED_COLOR
+			ADD_GREEN_COLOR:
+			mov	word ptr [rbx + RAW_DOT_OFFSET + SIZEOF word], GREEN_COLOR
+			jmp	COLOR_ADDED
+			ADD_BLUE_COLOR:	
 			mov	word ptr [rbx + RAW_DOT_OFFSET + SIZEOF word], BLUE_COLOR
+			jmp	COLOR_ADDED
+			ADD_RED_COLOR:
+			mov	word ptr [rbx + RAW_DOT_OFFSET + SIZEOF word], RED_COLOR
+			jmp	COLOR_ADDED
+			ADD_CYAN_COLOR:
+			mov	word ptr [rbx + RAW_DOT_OFFSET + SIZEOF word], CYAN_COLOR
+			jmp	COLOR_ADDED
+			ADD_WHITE_COLOR:
+			mov	word ptr [rbx + RAW_DOT_OFFSET + SIZEOF word], WHITE_COLOR
+			jmp	COLOR_ADDED
+			ADD_YELLOW_COLOR:
+			mov	word ptr [rbx + RAW_DOT_OFFSET + SIZEOF word], YELLOW_COLOR
+			jmp	COLOR_ADDED
+			COLOR_ADDED:
 			mov	qword ptr [rax + DEFAULT_3D_MESH_DATA],	rbx 
 			inc	rsi
 		

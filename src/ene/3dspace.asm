@@ -423,16 +423,10 @@
 			pop	rcx
 			pop	rax
 ;---------------------------------------------------------------------------------------------------------
-			; reading current dot coordinates
-			mov	r10,	qword ptr [r14]				; dot's x coord
-			mov	r11,	qword ptr [r14 + SIZEOF qword] 		; dot's y coord
-			mov	r12,	qword ptr [r14 + (SIZEOF qword * 2)]	; dot's z coord
-			; adding rotational transformations
-			mov	r10,	qword ptr [TEST_ROTATION_BUFFER]	
-			add	r10,	GAMEOBJECT_POSITION_X
-			mov	r11,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword)]
-			add	r11,	GAMEOBJECT_POSITION_Y
-			;add	r12,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)]
+			; coords after rotational transformations
+			mov	r10,	qword ptr [TEST_ROTATION_BUFFER]			; x-coord
+			mov	r11,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword)]	; y-coord
+			mov	r12,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)]	; z-coord
 			; getting coordinate in linear space
 			push	rcx
 			push	rdx
@@ -610,7 +604,7 @@
 		push	rbp
 		push	rbx
 		mov	rbp,	rsp
-		; currently only transforming roation along z
+		; transforming along z
 		; reading coordinates
 		mov	rax,	qword ptr [rcx]				; x coord
 		sub	rax,	GAMEOBJECT_POSITION_X
@@ -687,6 +681,7 @@
 		shr	rbx,	1
 		mov	rax,	qword ptr [rsp]
 		add	rax,	rbx
+		add	rax,	GAMEOBJECT_POSITION_X
 		mov	qword ptr [TEST_ROTATION_BUFFER],	rax
 
 		; resolving its new y position
@@ -717,8 +712,235 @@
 		shr	rbx,	1
 		mov	rax,	qword ptr [rsp]
 		add	rax,	rbx
+		add	rax,	GAMEOBJECT_POSITION_Y
 		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword)],	rax
+
+		; filling z the constant here
+		mov	rax,	qword ptr [rcx + (SIZEOF qword * 2)]			; z coord
+		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)],	rax
+
+; ----------------------------------------------------------------------------------------------
+		; transforming along x
+		; reading coordinates after previous transformation
+		mov	rax,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)]		; x coord
+		sub	rax,	GAMEOBJECT_POSITION_Z
+		push	rax
+		mov	rax,	qword ptr [TEST_ROTATION_BUFFER + SIZEOF qword]			; y coord
+		sub	rax,	GAMEOBJECT_POSITION_Y
+		push	rax
+
+		; getting magnitude
+		; getting x position from its centre
+		mov	rbx,	GAMEOBJECT_SIZE_Z
+		shr	rbx,	1					; centre coord
+		mov	rax,	qword ptr [rsp + (SIZEOF qword)]	; x coord
+		sub	rax,	rbx					; position from centre
+		push	rax	
+		; getting y position from centre
+		mov	rbx,	GAMEOBJECT_SIZE_Y
+		shr	rbx,	1					; centre coord
+		mov	rax,	qword ptr [rsp + SIZEOF qword]	        ; y coord
+		sub	rax,	rbx					; position from centre
+		push	rax
+
+		; finding atan0 = inital angle
+		push	rcx
+		push	rdx
+		mov	rdx,	qword ptr [rsp + (SIZEOF qword * 2)] 		; y comp
+		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 3)]		; x comp
+		call	atan
+		pop	rdx
+		pop	rcx
+		push	rax				; relative angle
 		
+		fild	qword ptr [rsp + SIZEOF qword]	; y pos
+		fild	qword ptr [rsp + SIZEOF qword]  ; y pos
+		fmulp			; y pos * y pos
+		push	0
+		fstp	qword ptr [rsp]
+		fild 	qword ptr [rsp + (SIZEOF qword * 3)]	; x pos
+		fild	qword ptr [rsp + (SIZEOF qword * 3)]	; x pos
+		fmulp						; x pos * x pos
+		push	0
+		fstp	qword ptr [rsp]
+		fld	qword ptr [rsp]	; x squr
+		fld	qword ptr [rsp + SIZEOF qword] ; y squr
+		faddp
+		fsqrt
+		push	0
+		fstp	qword ptr [rsp]	; magnitude		
+		
+
+		; getting cos0 => cos(ROTATION_X)
+		push	rcx
+		mov	rcx,	qword ptr [TEST_ROTATION]		; x rotation
+		fld	qword ptr [rsp + (SIZEOF qword * 4)]		; relative rotation
+		push	rcx
+		fld	qword ptr [rsp]					; x rotation
+		faddp							; 0-target
+		fstp	qword ptr [rsp]
+		pop	rcx
+		call	cos
+		pop	rcx
+		push	rax
+		
+		; getting Xcos0
+		fld	qword ptr [rsp]				; cos0
+		fld	qword ptr [rsp + (SIZEOF qword)]	; magnitude
+		fmulp
+		push	0
+		fistp	qword ptr [rsp]
+
+		;  filling new z position
+		mov	rbx, 	GAMEOBJECT_SIZE_Z
+		shr	rbx,	1
+		mov	rax,	qword ptr [rsp]
+		add	rax,	rbx
+		add	rax,	GAMEOBJECT_POSITION_Z
+		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)],	rax
+
+		; resolving its new y position
+
+		
+		; getting sin0 => sin(ROTATION_X)
+		push	rcx
+		mov	rcx, 	qword ptr [TEST_ROTATION]	; x rotation
+		fld	qword ptr [rsp + (SIZEOF qword * 6)]	; relative angle
+		push	rcx
+		fld	qword ptr [rsp]				; x rotation
+		faddp						; 0-target
+		fstp	qword ptr [rsp]
+		pop	rcx
+		call	sin
+		pop	rcx
+		push	rax
+
+		; getting Ysin0
+		fld	qword ptr [rsp]				; sin0
+		fld	qword ptr [rsp + (SIZEOF qword * 3)]	; magnitude
+		fmulp
+		push	0
+		fistp	qword ptr [rsp]
+
+		; filling new y position
+		mov	rbx,	GAMEOBJECT_SIZE_Y
+		shr	rbx,	1
+		mov	rax,	qword ptr [rsp]
+		add	rax,	rbx
+		add	rax,	GAMEOBJECT_POSITION_Y
+		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword)],	rax
+
+; ----------------------------------------------------------------------------------------------------------
+		; transforming along y
+		; reading coordinates after previous transformations
+		mov	rax,	qword ptr [TEST_ROTATION_BUFFER]				; x coord
+		sub	rax,	GAMEOBJECT_POSITION_X
+		push	rax
+		mov	rax,	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)]		; y coord
+		sub	rax,	GAMEOBJECT_POSITION_Z
+		push	rax
+
+		; getting magnitude
+		; getting x position from its centre
+		mov	rbx,	GAMEOBJECT_SIZE_X
+		shr	rbx,	1					; centre coord
+		mov	rax,	qword ptr [rsp + (SIZEOF qword)]	; x coord
+		sub	rax,	rbx					; position from centre
+		push	rax	
+		; getting y position from centre
+		mov	rbx,	GAMEOBJECT_SIZE_Z
+		shr	rbx,	1					; centre coord
+		mov	rax,	qword ptr [rsp + SIZEOF qword]	        ; y coord
+		sub	rax,	rbx					; position from centre
+		push	rax
+
+
+		; finding atan0 = inital angle
+		push	rcx
+		push	rdx
+		mov	rdx,	qword ptr [rsp + (SIZEOF qword * 2)] 		; y comp
+		mov	rcx,	qword ptr [rsp + (SIZEOF qword * 3)]		; x comp
+		call	atan
+		pop	rdx
+		pop	rcx
+		push	rax				; relative angle
+		
+		fild	qword ptr [rsp + SIZEOF qword]	; y pos
+		fild	qword ptr [rsp + SIZEOF qword]  ; y pos
+		fmulp			; y pos * y pos
+		push	0
+		fstp	qword ptr [rsp]
+		fild 	qword ptr [rsp + (SIZEOF qword * 3)]	; x pos
+		fild	qword ptr [rsp + (SIZEOF qword * 3)]	; x pos
+		fmulp						; x pos * x pos
+		push	0
+		fstp	qword ptr [rsp]
+		fld	qword ptr [rsp]	; x squr
+		fld	qword ptr [rsp + SIZEOF qword] ; y squr
+		faddp
+		fsqrt
+		push	0
+		fstp	qword ptr [rsp]	; magnitude		
+		
+
+		; getting cos0 => cos(ROTATION_Y)
+		push	rcx
+		mov	rcx,	qword ptr [TEST_ROTATION + SIZEOF qword]	; y rotation
+		fld	qword ptr [rsp + (SIZEOF qword * 4)]		; relative rotation
+		push	rcx
+		fld	qword ptr [rsp]					; y rotation
+		faddp							; 0-target
+		fstp	qword ptr [rsp]
+		pop	rcx
+		call	cos
+		pop	rcx
+		push	rax
+		
+		; getting Xcos0
+		fld	qword ptr [rsp]				; cos0
+		fld	qword ptr [rsp + (SIZEOF qword)]	; magnitude
+		fmulp
+		push	0
+		fistp	qword ptr [rsp]
+
+		;  filling new x position
+		mov	rbx, 	GAMEOBJECT_SIZE_X
+		shr	rbx,	1
+		mov	rax,	qword ptr [rsp]
+		add	rax,	rbx
+		add	rax,	GAMEOBJECT_POSITION_X
+		mov	qword ptr [TEST_ROTATION_BUFFER],	rax
+
+		; resolving its new y position
+		
+		; getting sin0 => sin(ROTATION_Y)
+		push	rcx
+		mov	rcx, 	qword ptr [TEST_ROTATION + SIZEOF qword]	; y rotation
+		fld	qword ptr [rsp + (SIZEOF qword * 6)]	; relative angle
+		push	rcx
+		fld	qword ptr [rsp]				; y rotation
+		faddp						; 0-target
+		fstp	qword ptr [rsp]
+		pop	rcx
+		call	sin
+		pop	rcx
+		push	rax
+
+		; getting Ysin0
+		fld	qword ptr [rsp]				; sin0
+		fld	qword ptr [rsp + (SIZEOF qword * 3)]	; magnitude
+		fmulp
+		push	0
+		fistp	qword ptr [rsp]
+
+		; filling new y position
+		mov	rbx,	GAMEOBJECT_SIZE_Z
+		shr	rbx,	1
+		mov	rax,	qword ptr [rsp]
+		add	rax,	rbx
+		add	rax,	GAMEOBJECT_POSITION_Z
+		mov	qword ptr [TEST_ROTATION_BUFFER + (SIZEOF qword * 2)],	rax
+
 		mov	rax,	TEST_ROTATION_BUFFER
 
 		mov	rsp,	rbp

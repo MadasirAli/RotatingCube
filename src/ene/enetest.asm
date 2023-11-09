@@ -56,7 +56,7 @@ INCLUDE		rstrizr.asm
 		call	fillmesh
 
 		DURING:
-		; adding angle
+		; adding z rotation angle
 		mov	rax,	qword ptr [PER_FRAME_ROT_CHANGE]
 		push	rax
 		mov	rax,	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)]	; z rot
@@ -67,6 +67,32 @@ INCLUDE		rstrizr.asm
 		fstp	qword ptr [rsp]
 		pop	rax
 		mov	qword ptr [TEST_ROTATION + (SIZEOF qword * 2)], rax
+		pop	rax
+
+		; adding x rotation angle
+		mov	rax,	qword ptr [PER_FRAME_ROT_CHANGE]
+		push	rax
+		mov	rax,	qword ptr [TEST_ROTATION]	; x rot
+		push	rax
+		fld	qword ptr [rsp]
+		fld	qword ptr [rsp + SIZEOF qword]
+		faddp
+		fstp	qword ptr [rsp]
+		pop	rax
+		mov	qword ptr [TEST_ROTATION], rax
+		pop	rax
+
+		; adding y rotation angle
+		mov	rax,	qword ptr [PER_FRAME_ROT_CHANGE]
+		push	rax
+		mov	rax,	qword ptr [TEST_ROTATION + SIZEOF qword]	; y rot
+		push	rax
+		fld	qword ptr [rsp]
+		fld	qword ptr [rsp + SIZEOF qword]
+		faddp
+		fstp	qword ptr [rsp]
+		pop	rax
+		mov	qword ptr [TEST_ROTATION + SIZEOF qword], rax
 		pop	rax
 
 		; 1- Initial Draw
